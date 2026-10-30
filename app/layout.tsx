@@ -3,7 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Mimimi — seu cantinho de conexões",
-  description: "Faça amizades, compartilhe momentos e encontre sua comunidade no Mimimi."
+  description: "Faça amizades, compartilhe momentos e encontre sua comunidade no Mimimi.",
+  icons: { icon: "/mimimi-icon.webp", shortcut: "/mimimi-icon.webp", apple: "/mimimi-icon.webp" }
 };
 
 export const viewport: Viewport = {
