@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AuthPanel from "./auth-panel";
+import { getSupabase } from "@/lib/supabase";
 import {
   Bell, Compass, Home, MessageCircle, Users, ShoppingBag, Settings,
   Search, Plus, Heart, MessageSquare, Share2, Image as ImageIcon,
@@ -34,6 +36,8 @@ const navItems = [
 ];
 
 export default function HomePage() {
+  const [sessionReady, setSessionReady] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
   const [dark, setDark] = useState(false);
   const [active, setActive] = useState("Início");
   const [liked, setLiked] = useState<number[]>([]);
@@ -44,6 +48,25 @@ export default function HomePage() {
   const [devOpen, setDevOpen] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    const supabase = getSupabase();
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) {
+        setAuthenticated(!!data.session);
+        setSessionReady(true);
+      }
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthenticated(!!session);
+      setSessionReady(true);
+    });
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem("mimimi-theme");
@@ -70,6 +93,9 @@ export default function HomePage() {
     setActive(label);
     if (label !== "Início") setNotice(label + " estará disponível nas próximas etapas 💗");
   }
+
+  if (!sessionReady) return <main className="auth-page"><div className="auth-loading">Preparando seu cantinho... 💗</div></main>;
+  if (!authenticated) return <AuthPanel />;
 
   return (
     <main className={dark ? "app dark" : "app"}>
