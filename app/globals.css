@@ -130,3 +130,129 @@
 }
 
 .mimi-google-mark{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:50%;font-family:Arial,sans-serif;font-size:17px;font-weight:800;line-height:1;background:conic-gradient(from -45deg,#4285F4 0 25%,#34A853 25% 50%,#FBBC05 50% 75%,#EA4335 75% 100%);color:transparent;background-clip:text;-webkit-background-clip:text}
+
+
+/* Mimimi login — composição fiel à referência enviada */
+.mimi-entry.mimi-auth-entry{
+  min-height:100svh;
+  padding:18px clamp(14px,3.5vw,48px);
+  display:grid;
+  place-items:center;
+  background:linear-gradient(115deg,#F7C4D2 0%,#F9D2DC 48%,#F8C4D3 100%);
+}
+.mimi-auth-entry .mimi-login-shell{
+  width:min(1210px,100%);
+  max-width:1210px;
+  min-height:min( min( calc(100svh - 36px), 920px), 920px);
+  height:min(calc(100svh - 36px),920px);
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:clamp(22px,6vw,78px);
+  align-items:stretch;
+}
+.mimi-auth-entry .mimi-login-art,
+.mimi-auth-entry .mimi-login-form-panel{
+  display:flex;
+  position:relative;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  border:6px solid rgba(255,255,255,.82);
+  border-radius:42px;
+  box-shadow:0 12px 30px rgba(183,91,123,.12);
+}
+.mimi-auth-entry .mimi-login-art{
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(155deg,#F9B6C8 0%,#F58EAC 62%,#F7AFC1 100%);
+}
+.mimi-auth-entry .mimi-login-art>.mimi-script-logo{
+  font-size:clamp(66px,7.3vw,108px);
+  color:#fff;
+  text-shadow:0 2px 2px rgba(255,255,255,.15);
+}
+.mimi-auth-entry .mimi-login-form-panel{
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(160deg,#FFF9F8 0%,#FFE9ED 56%,#FADBE5 100%);
+}
+.mimi-auth-entry .mimi-form-inner{
+  width:min(100%,500px);
+  padding:clamp(22px,3vw,42px) clamp(22px,3vw,38px);
+}
+.mimi-auth-entry .mimi-mini-logo{
+  font-size:clamp(48px,5vw,68px);
+  margin-bottom:30px;
+}
+.mimi-auth-entry .mimi-mini-logo .logo-ears{top:-29px}
+.mimi-auth-entry .mimi-login-form-panel h1{
+  font-size:clamp(19px,2vw,27px);
+  margin-bottom:7px;
+}
+.mimi-auth-entry .mimi-subtitle{font-size:clamp(11px,1.1vw,15px)}
+.mimi-auth-entry .form-heart{margin:16px auto 26px}
+.mimi-auth-entry .mimi-form{gap:17px}
+.mimi-auth-entry .mimi-field{
+  height:clamp(48px,5.4vh,62px);
+  padding:0 23px;
+  border-radius:40px;
+  background:rgba(255,255,255,.74);
+}
+.mimi-auth-entry .mimi-field input{font-size:clamp(12px,1.15vw,16px)}
+.mimi-auth-entry .mimi-forgot{font-size:clamp(11px,1.05vw,14px);padding:3px 0 8px}
+.mimi-auth-entry .mimi-submit,
+.mimi-auth-entry .mimi-create{
+  height:clamp(49px,5.8vh,66px);
+  border-radius:40px;
+  font-size:clamp(13px,1.2vw,17px);
+}
+.mimi-auth-entry .mimi-or{margin:22px 0 19px}
+.mimi-auth-entry .mimi-love{margin-top:30px;font-size:clamp(10px,1vw,14px)}
+.mimi-auth-entry .mimi-support{font-size:clamp(9px,.85vw,12px);margin-top:18px}
+.mimi-auth-entry .mimi-social-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.mimi-auth-entry .mimi-social{
+  height:42px;
+  min-width:0;
+  margin:0;
+  border:1px solid #F5D2DD;
+  border-radius:30px;
+  background:rgba(255,255,255,.72);
+  color:#A65E7A;
+  font-size:12px;
+  font-weight:700;
+}
+.mimi-auth-entry .mimi-google-mark{font-size:17px}
+.mimi-auth-entry .mimi-login-form-panel .cloud-a{
+  top:-90px;opacity:.72;
+}
+.mimi-auth-entry .mimi-login-form-panel .cloud-b,
+.mimi-auth-entry .mimi-login-form-panel .cloud-bottom{bottom:-65px;opacity:.72}
+.mimi-auth-entry .mimi-login-art .cloud-a{top:-85px;opacity:.92}
+.mimi-auth-entry .mimi-login-art .cloud-b{bottom:-85px;opacity:.92}
+.mimi-auth-entry .mimi-star{font-size:30px}
+.mimi-auth-entry .star-a{left:9%;top:16%}
+.mimi-auth-entry .star-b{right:9%;top:22%}
+.mimi-auth-entry .star-c{right:12%;bottom:18%}
+@media(max-width:760px){
+  .mimi-entry.mimi-auth-entry{padding:0;background:#F9DDE6}
+  .mimi-auth-entry .mimi-login-shell{width:100%;height:auto;min-height:100svh;display:block}
+  .mimi-auth-entry .mimi-login-art{display:none}
+  .mimi-auth-entry .mimi-login-form-panel{
+    min-height:100svh;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    padding:18px 0;
+  }
+  .mimi-auth-entry .mimi-form-inner{width:min(440px,100%);padding:30px 25px}
+  .mimi-auth-entry .mimi-mini-logo{font-size:58px}
+  .mimi-auth-entry .mimi-login-form-panel h1{font-size:22px}
+  .mimi-auth-entry .mimi-social-row{gap:8px}
+}
+@media(max-height:720px) and (min-width:761px){
+  .mimi-auth-entry .mimi-form-inner{padding-top:16px;padding-bottom:16px}
+  .mimi-auth-entry .mimi-mini-logo{font-size:48px;margin-bottom:18px}
+  .mimi-auth-entry .form-heart{margin:9px auto 14px}
+  .mimi-auth-entry .mimi-love{margin-top:15px}
+  .mimi-auth-entry .mimi-support{margin-top:9px}
+}
