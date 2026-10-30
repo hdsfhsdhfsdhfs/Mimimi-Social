@@ -101,7 +101,7 @@ export default function HomePage() {
     <main className={dark ? "app dark" : "app"}>
       <header className="topbar">
         <button className="icon-button mobile-only" aria-label="Abrir menu" onClick={() => setMobileMenu(!mobileMenu)}><Menu size={21} /></button>
-        <a className="brand" href="#" onClick={() => setActive("Início")}><span className="brand-mark">m</span><span>Mimimi</span></a>
+        <a className="brand" href="#" onClick={() => setActive("Início")}><span className="brand-mark"><img src="/mimimi-icon.webp" alt="" /></span><span>Mimimi</span></a>
         <div className="search-wrap"><Search size={18} /><input aria-label="Pesquisar" placeholder="Pesquisar pessoas, posts e comunidades..." /></div>
         <div className="top-actions">
           <button className="icon-button" aria-label="Atividades" onClick={() => setNotice("Você está em dia com suas atividades!")}><Bell size={20} /><i /></button>
