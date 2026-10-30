@@ -92,7 +92,7 @@ export default function AuthPanel() {
               <label className="mimi-field"><Mail size={19} /><input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Usuário ou e-mail" autoComplete="email" required /></label>
               {mode !== "reset" && <label className="mimi-field"><Lock size={19} /><input type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Senha" autoComplete={mode === "signup" ? "new-password" : "current-password"} minLength={6} required /><button type="button" className="mimi-eye" aria-label="Mostrar ou ocultar senha" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={19} /> : <Eye size={19} />}</button></label>}
               {mode === "login" && <button className="mimi-forgot" type="button" onClick={() => { setMode("reset"); setMessage(""); setError(""); }}>Esqueceu sua senha?</button>}
-              <button className="mimi-submit" type="submit" disabled={busy}>{busy ? "Aguarde..." : mode === "signup" ? "Criar nova conta" : mode === "reset" ? "Enviar link de recuperação" : mode === "phone" ? (phoneCodeSent ? "Confirmar código" : "Enviar código por SMS") : "Entrar"}</button>
+              <button className="mimi-submit" type="submit" disabled={busy}>{busy ? "Aguarde..." : mode === "signup" ? "Criar nova conta" : mode === "reset" ? "Enviar link de recuperação" : "Entrar"}</button>
               </>}
             </form>
             {message && <p className="mimi-feedback" role="status">{message}</p>}
