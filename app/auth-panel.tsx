@@ -50,7 +50,7 @@ export default function AuthPanel() {
     <main className="mimi-entry mimi-splash">
       <section className="mimi-splash-panel">
         <div className="mimi-cloud cloud-a" /><div className="mimi-cloud cloud-b" />
-        <div className="mimi-script-logo">Mimimi<span className="logo-ears">♡</span><i /></div>
+        <div className="mimi-script-logo">Mimimi<span className="logo-ears" aria-hidden="true"><i /><i /></span><i /></div>
         <div className="splash-bottom"><div className="splash-progress"><span /></div><p>Carregando sua experiência...</p><Heart size={15} fill="currentColor" /></div>
         <span className="mimi-star star-a">✦</span><span className="mimi-star star-b">✧</span><span className="mimi-star star-c">✦</span>
       </section>
@@ -65,13 +65,14 @@ export default function AuthPanel() {
       <section className="mimi-login-shell">
         <div className="mimi-login-art">
           <div className="mimi-cloud cloud-a" /><div className="mimi-cloud cloud-b" />
-          <div className="mimi-script-logo">Mimimi<span className="logo-ears">♡</span><i /></div>
+          <div className="mimi-script-logo">Mimimi<span className="logo-ears" aria-hidden="true"><i /><i /></span><i /></div>
           <span className="mimi-star star-a">✦</span><span className="mimi-star star-b">✧</span><span className="mimi-star star-c">✦</span>
           <div className="art-footer">Um cantinho feito para você <Heart size={15} fill="currentColor" /></div>
         </div>
         <div className="mimi-login-form-panel">
+          <div className="mimi-cloud cloud-a" /><div className="mimi-cloud cloud-b" />
           <div className="mimi-form-inner">
-            <div className="mimi-mini-logo">Mimimi<span className="logo-ears">♡</span><i /></div>
+            <div className="mimi-mini-logo">Mimimi<span className="logo-ears" aria-hidden="true"><i /><i /></span><i /></div>
             <h1>{title}</h1><p className="mimi-subtitle">{subtitle}</p><Heart className="form-heart" size={14} fill="currentColor" />
             <form className="mimi-form" onSubmit={submit}>
               {mode === "signup" && <label className="mimi-field"><UserRound size={19} /><input value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Como podemos chamar você?" autoComplete="name" required maxLength={50} /></label>}
