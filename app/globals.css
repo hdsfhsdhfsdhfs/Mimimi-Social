@@ -106,3 +106,5 @@
 .mimi-splash-panel{background:linear-gradient(155deg,#F8B7C9,#F58EAC 75%,#F9B9C9)}
 .mimi-login-art{background:linear-gradient(145deg,#F9B6C8,#F68EAC 72%,#F8B3C0)}
 @media(max-width:700px){.mimi-mini-logo .logo-ears{top:-29px}.mimi-login-form-panel .cloud-a{top:-115px}.mimi-login-form-panel .cloud-b{bottom:-120px}}
+
+.mimi-social{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:10px;background:#fffdfd;color:#E97899}.mimi-social:disabled{opacity:.6}
