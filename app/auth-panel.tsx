@@ -2,7 +2,7 @@
 
 import { type FormEvent, useEffect, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
-import { Mail, Lock, ArrowLeft, UserRound, Eye, EyeOff, Heart, Phone, Chrome } from "lucide-react";
+import { Mail, Lock, ArrowLeft, UserRound, Eye, EyeOff, Heart, Phone } from "lucide-react";
 
 export default function AuthPanel() {
   const [mode, setMode] = useState<"login" | "signup" | "reset" | "phone">("login");
@@ -97,7 +97,7 @@ export default function AuthPanel() {
             </form>
             {message && <p className="mimi-feedback" role="status">{message}</p>}
             {error && <p className="mimi-feedback error" role="alert">{error}</p>}
-            {mode === "login" && <><button className="mimi-create mimi-social" type="button" disabled={busy} onClick={async () => { setBusy(true); setError(""); try { const { error: oauthError } = await getSupabase().auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin } }); if (oauthError) throw oauthError; } catch (err) { setError(err instanceof Error ? err.message : "Não foi possível entrar com Google."); } finally { setBusy(false); } }}><Chrome size={17} /> Continuar com Google</button><button className="mimi-create mimi-social" type="button" onClick={() => { setMode("phone"); setPhoneCodeSent(false); setPhone(""); setPhoneCode(""); setMessage(""); setError(""); }}><Phone size={17} /> Entrar com telefone</button></>}
+            {mode === "login" && <><button className="mimi-create mimi-social" type="button" disabled={busy} onClick={async () => { setBusy(true); setError(""); try { const { error: oauthError } = await getSupabase().auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin } }); if (oauthError) throw oauthError; } catch (err) { setError(err instanceof Error ? err.message : "Não foi possível entrar com Google."); } finally { setBusy(false); } }}><span className="mimi-google-mark" aria-hidden="true">G</span> Continuar com Google</button><button className="mimi-create mimi-social" type="button" onClick={() => { setMode("phone"); setPhoneCodeSent(false); setPhone(""); setPhoneCode(""); setMessage(""); setError(""); }}><Phone size={17} /> Entrar com telefone</button></>}
             {mode === "reset" || mode === "phone" ? <button className="mimi-back" onClick={() => { setMode("login"); setPhoneCodeSent(false); setMessage(""); setError(""); }}><ArrowLeft size={15} /> Voltar para entrar</button> : <><div className="mimi-or"><span />ou<span /></div><button className="mimi-create" onClick={() => { setMode(mode === "signup" ? "login" : "signup"); setMessage(""); setError(""); }}>{mode === "signup" ? "Já tenho uma conta" : "Criar nova conta"}</button></>}
             <p className="mimi-love">Juntos somos mais mimimi! <Heart size={14} /></p>
             <p className="mimi-support">Precisa de ajuda? support.mimimi@gmail.com</p>
