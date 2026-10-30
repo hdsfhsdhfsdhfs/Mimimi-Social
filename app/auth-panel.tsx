@@ -28,7 +28,17 @@ export default function AuthPanel() {
     setBusy(true); setMessage(""); setError("");
     try {
       const supabase = getSupabase();
-      if (mode === "phone") {\n        if (!phoneCodeSent) {\n          const { error: otpError } = await supabase.auth.signInWithOtp({ phone: phone.trim() });\n          if (otpError) throw otpError;\n          setPhoneCodeSent(true);\n          setMessage("Enviamos um código por SMS. Digite-o aqui para entrar no Mimimi.");\n        } else {\n          const { error: verifyError } = await supabase.auth.verifyOtp({ phone: phone.trim(), token: phoneCode.trim(), type: "sms" });\n          if (verifyError) throw verifyError;\n        }\n      } else if (mode === "signup") {
+      if (mode === "phone") {
+        if (!phoneCodeSent) {
+          const { error: otpError } = await supabase.auth.signInWithOtp({ phone: phone.trim() });
+          if (otpError) throw otpError;
+          setPhoneCodeSent(true);
+          setMessage("Enviamos um código por SMS. Digite-o aqui para entrar no Mimimi.");
+        } else {
+          const { error: verifyError } = await supabase.auth.verifyOtp({ phone: phone.trim(), token: phoneCode.trim(), type: "sms" });
+          if (verifyError) throw verifyError;
+        }
+      } else if (mode === "signup") {
         const { data, error: authError } = await supabase.auth.signUp({
           email: email.trim(), password,
           options: { data: { display_name: displayName.trim() }, emailRedirectTo: window.location.origin }
@@ -82,11 +92,13 @@ export default function AuthPanel() {
               <label className="mimi-field"><Mail size={19} /><input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Usuário ou e-mail" autoComplete="email" required /></label>
               {mode !== "reset" && <label className="mimi-field"><Lock size={19} /><input type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} placeholder="Senha" autoComplete={mode === "signup" ? "new-password" : "current-password"} minLength={6} required /><button type="button" className="mimi-eye" aria-label="Mostrar ou ocultar senha" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={19} /> : <Eye size={19} />}</button></label>}
               {mode === "login" && <button className="mimi-forgot" type="button" onClick={() => { setMode("reset"); setMessage(""); setError(""); }}>Esqueceu sua senha?</button>}
-              <button className="mimi-submit" type="submit" disabled={busy}>{busy ? "Aguarde..." : mode === "signup" ? "Criar nova conta" : mode === "reset" ? "Enviar link de recuperação" : "Entrar"}</button>
+              <button className="mimi-submit" type="submit" disabled={busy}>{busy ? "Aguarde..." : mode === "signup" ? "Criar nova conta" : mode === "reset" ? "Enviar link de recuperação" : mode === "phone" ? (phoneCodeSent ? "Confirmar código" : "Enviar código por SMS") : "Entrar"}</button>
+              </>}
             </form>
             {message && <p className="mimi-feedback" role="status">{message}</p>}
             {error && <p className="mimi-feedback error" role="alert">{error}</p>}
-            {mode === "login" && <><button className="mimi-create mimi-social" type="button" disabled={busy} onClick={async () => { setBusy(true); setError(""); try { const { error: oauthError } = await getSupabase().auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin } }); if (oauthError) throw oauthError; } catch (err) { setError(err instanceof Error ? err.message : "Não foi possível entrar com Google."); } finally { setBusy(false); } }}><Chrome size={17} /> Continuar com Google</button><button className="mimi-create mimi-social" type="button" onClick={() => { setMode("phone"); setPhoneCodeSent(false); setPhone(""); setPhoneCode(""); setMessage(""); setError(""); }}><Phone size={17} /> Entrar com telefone</button></>}\n            {mode === "reset" || mode === "phone" ? <button className="mimi-back" onClick={() => { setMode("login"); setPhoneCodeSent(false); setMessage(""); setError(""); }}><ArrowLeft size={15} /> Voltar para entrar</button> : <><div className="mimi-or"><span />ou<span /></div><button className="mimi-create" onClick={() => { setMode(mode === "signup" ? "login" : "signup"); setMessage(""); setError(""); }}>{mode === "signup" ? "Já tenho uma conta" : "Criar nova conta"}</button></>}
+            {mode === "login" && <><button className="mimi-create mimi-social" type="button" disabled={busy} onClick={async () => { setBusy(true); setError(""); try { const { error: oauthError } = await getSupabase().auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin } }); if (oauthError) throw oauthError; } catch (err) { setError(err instanceof Error ? err.message : "Não foi possível entrar com Google."); } finally { setBusy(false); } }}><Chrome size={17} /> Continuar com Google</button><button className="mimi-create mimi-social" type="button" onClick={() => { setMode("phone"); setPhoneCodeSent(false); setPhone(""); setPhoneCode(""); setMessage(""); setError(""); }}><Phone size={17} /> Entrar com telefone</button></>}
+            {mode === "reset" || mode === "phone" ? <button className="mimi-back" onClick={() => { setMode("login"); setPhoneCodeSent(false); setMessage(""); setError(""); }}><ArrowLeft size={15} /> Voltar para entrar</button> : <><div className="mimi-or"><span />ou<span /></div><button className="mimi-create" onClick={() => { setMode(mode === "signup" ? "login" : "signup"); setMessage(""); setError(""); }}>{mode === "signup" ? "Já tenho uma conta" : "Criar nova conta"}</button></>}
             <p className="mimi-love">Juntos somos mais mimimi! <Heart size={14} /></p>
             <p className="mimi-support">Precisa de ajuda? support.mimimi@gmail.com</p>
           </div>
