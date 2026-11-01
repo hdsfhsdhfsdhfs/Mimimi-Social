@@ -25,7 +25,7 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
-  const [bio, setBio] = useState("");
+  const [bio, setBio] = useState("");\n  const [statusMode,setStatusMode]=useState<"online"|"offline"|"emoji">("online");\n  const [statusEmoji,setStatusEmoji]=useState("🌸");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState("");
@@ -78,7 +78,7 @@ export default function ProfilePage() {
       const params = new URLSearchParams(window.location.search);
       const requestedUsername = params.get("u");
       const requestedId = params.get("id");
-      let query = supabase.from("profiles").select("id, auth_user_id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, created_at, username_changed_at, hide_profile_visitors, mural_is_private");
+      let query = supabase.from("profiles").select("id, auth_user_id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, status_mode, status_emoji, created_at, username_changed_at, hide_profile_visitors, mural_is_private");
       if (requestedUsername) query = query.eq("username", requestedUsername.replace(/^@/, "").toLowerCase());
       else if (requestedId) query = query.eq("auth_user_id", requestedId);
       else query = query.eq("auth_user_id", user.id);
@@ -93,7 +93,7 @@ export default function ProfilePage() {
       setProfile(current);
       setDisplayName(current.display_name || "");
       setUsername(current.username || "");
-      setBio(current.bio || "");
+      setBio(current.bio || "");\n      setStatusMode(current.status_mode||"online");\n      setStatusEmoji(current.status_emoji||"🌸");
       setHideVisitors(!!current.hide_profile_visitors);
       setMuralPrivate(!!(current as any).mural_is_private);
       await loadMural(current.auth_user_id);
@@ -222,8 +222,8 @@ export default function ProfilePage() {
       let avatarUrl = profile.avatar_url, backgroundUrl = profile.background_url;
       if (avatarFile) avatarUrl = await uploadSelectedImage(avatarFile, "avatar", user.id);
       if (backgroundFile) backgroundUrl = await uploadSelectedImage(backgroundFile, "background", user.id);
-      const values = {auth_user_id:user.id,display_name:cleanName,username:cleanUsername||null,bio:bio.trim().slice(0,160),avatar_url:avatarUrl,background_url:backgroundUrl,updated_at:new Date().toISOString()};
-      const {data,error} = await supabase.from("profiles").upsert(values,{onConflict:"auth_user_id"}).select("id, auth_user_id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, created_at, username_changed_at, hide_profile_visitors").single();
+      const values = {auth_user_id:user.id,display_name:cleanName,username:cleanUsername||null,bio:bio.trim().slice(0,160),status_mode:statusMode,status_emoji:statusMode==="emoji"?statusEmoji.trim().slice(0,8):null,avatar_url:avatarUrl,background_url:backgroundUrl,updated_at:new Date().toISOString()};
+      const {data,error} = await supabase.from("profiles").upsert(values,{onConflict:"auth_user_id"}).select("id, auth_user_id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, status_mode, status_emoji, created_at, username_changed_at, hide_profile_visitors").single();
       if (error) setMessage(error.code==="23505" ? "Esse @usuário já está sendo usado. Escolha outro." : error.message.includes("USERNAME_CHANGE_COOLDOWN") ? "Você só pode mudar seu @ uma vez a cada 2 meses." : `Erro ao salvar: ${error.message}`);
       else { setProfile(data as Profile); setAvatarFile(null); setBackgroundFile(null); setAvatarPreview(""); setBackgroundPreview(""); setEditing(false); setMessage("Seu cantinho foi atualizado! 💗"); }
     } catch { setMessage("Não foi possível enviar uma das imagens. Confira sua conexão e tente novamente."); }
@@ -319,7 +319,7 @@ export default function ProfilePage() {
         <div className="profile-hero">
           <div className="profile-avatar-wrap">{avatarPreview||profile.avatar_url?<img src={avatarPreview||profile.avatar_url||""} alt="Foto do perfil"/>:<span>{initial}</span>}<i/></div>
           <div className="profile-identity">
-            <h1>{name}</h1><p>{handle}</p>
+            <h1>{name}</h1><p>{handle}</p>{profile.status_mode==="online"?<span className="profile-user-status"><i/> Online</span>:profile.status_mode==="offline"?<span className="profile-user-status offline"><i/> Offline</span>:profile.status_mode==="emoji"?<span className="profile-user-status emoji">{profile.status_emoji||"🌸"}</span>:null}
             {(profile.is_official||profile.role_label)&&<div className="profile-role-row">{profile.is_official&&<span className="profile-verified" title="Conta oficial do Mimimi">✓</span>}{profile.role_label&&<button className="profile-role-pill" onClick={()=>setShowRoleInfo(!showRoleInfo)}>{profile.role_label}</button>}</div>}
             {showRoleInfo&&<div className="profile-role-popover">{profile.role_description||"Membro oficial da equipe Mimimi."}</div>}
             <span className="profile-joined">Membro desde {joined}</span>
