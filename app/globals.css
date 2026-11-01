@@ -458,3 +458,11 @@
 .profile-post-author-avatar img{width:100%;height:100%;object-fit:cover}
 .social-post-author-avatar .avatar{overflow:hidden}
 .social-post-author-avatar .avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+
+
+/* Cargos e verificação nos autores das publicações */
+.social-post-author-badges{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:5px}
+.social-role-badge,.social-verified-badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 8px;font-size:10px;line-height:1.2;font-weight:800;letter-spacing:.01em}
+.social-role-badge{background:#FFE3ED;color:#B94473;border:1px solid #F5B7CE}
+.social-verified-badge{background:#EAF3FF;color:#2873C8;border:1px solid #B9D7FA}
+.profile-post-author .social-post-author-badges{margin-top:4px}
