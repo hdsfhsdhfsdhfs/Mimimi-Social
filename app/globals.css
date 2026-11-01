@@ -531,3 +531,13 @@
 .mimimi-chat-compose button{width:46px;height:46px;display:grid;place-items:center;border:0;border-radius:50%;background:#E86694;color:#fff}
 .mimimi-chat-compose button:disabled{opacity:.45}
 .mimimi-chat-notice{margin:8px 14px;color:#B94473;font-size:11px}
+
+
+.profile-settings-account-link{width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:18px;padding:17px 18px;border:1px solid rgba(232,102,148,.18);border-radius:18px;background:rgba(255,255,255,.72);color:#49343b;text-align:left;cursor:pointer}
+.profile-settings-account-link span:first-child{display:flex;flex-direction:column;gap:5px}
+.profile-settings-account-link strong{font-size:15px}
+.profile-settings-account-link small{font-size:12px;color:#987985}
+.profile-settings-account-link span:last-child{font-size:26px;color:#e86694}
+.profile-account-panel{width:100%}
+.profile-signout-button{width:100%;margin-top:22px;padding:15px 18px;border:0;border-radius:16px;background:#e86694;color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+.profile-signout-button:disabled{opacity:.65;cursor:wait}
