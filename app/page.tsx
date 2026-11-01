@@ -118,7 +118,7 @@ export default function HomePage() {
     const wasLiked=post.liked_by_me;
     setSocialPosts(old=>old.map(p=>p.id===post.id?{...p,liked_by_me:!wasLiked,likes_count:Math.max(0,p.likes_count+(wasLiked?-1:1))}:p));
     const result=wasLiked?await supabase.from("social_post_likes").delete().eq("post_id",post.id).eq("user_id",user.id):await supabase.from("social_post_likes").insert({post_id:post.id,user_id:user.id});
-    if(result.error){setSocialPosts(old=>old.map(p=>p.id===post.id?{...p,liked_by_me:wasLiked,likes_count:Math.max(0,p.likes_count+(wasLiked?1:-1))}:p));setNotice("Não foi possível atualizar sua curtida. Tente novamente.");}
+    if(result.error){setSocialPosts(old=>old.map(p=>p.id===post.id?{...p,liked_by_me:wasLiked,likes_count:Math.max(0,p.likes_count+(wasLiked?1:-1))}:p));setNotice("Erro ao curtir: "+result.error.message);}
   }
 
   function comingSoon(label: string) {
