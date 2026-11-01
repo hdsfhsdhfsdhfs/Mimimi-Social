@@ -324,7 +324,6 @@ export default function ProfilePage() {
             {showRoleInfo&&<div className="profile-role-popover">{profile.role_description||"Membro oficial da equipe Mimimi."}</div>}
             <span className="profile-joined">Membro desde {joined}</span>
           </div>
-          <p className="profile-bio">{profile.bio||"Este cantinho está esperando por uma descrição especial. ♡"}</p>
           {isOwner && <button className="profile-edit-button" onClick={()=>{setEditing(!editing);setMessage("");}}><Edit3 size={16}/>{editing?"Fechar edição":"Editar perfil"}</button>}
         </div>
         <div className="profile-stats">
