@@ -360,11 +360,19 @@
 @media(max-width:700px){.profile-stats>button{min-height:68px;border-radius:13px}.profile-stats>button strong{font-size:20px}.profile-stats>button span{font-size:9px}.profile-privacy-card{margin-left:12px;margin-right:12px;padding:14px}.profile-modal-backdrop{align-items:end;padding:0}.profile-people-modal{width:100%;max-height:80vh;border-radius:22px 22px 0 0}}
 
 
-.profile-more-wrap{position:relative;display:flex;align-items:center}
-.profile-more-menu{position:absolute;z-index:30;right:0;top:48px;width:min(290px,calc(100vw - 36px));padding:15px;border:1px solid #f3dce5;border-radius:16px;background:#fff;color:#49343b;box-shadow:0 14px 38px #160e2033}
-.profile-more-menu>strong{display:block;margin-bottom:11px;color:#a34e70;font:900 13px Nunito,sans-serif}
-.profile-more-menu>p{margin:0;color:#987f88;font-size:12px}
-.profile-more-privacy{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.profile-more-privacy>span{display:grid;gap:4px}
-.profile-more-privacy b{font-size:12px}
-.profile-more-privacy small{color:#987f88;font-size:10px;line-height:1.4}
+
+
+.profile-settings-page{min-height:100vh;padding-bottom:40px}
+.profile-settings-topbar{max-width:920px;margin:0 auto 18px;min-height:64px}
+.profile-settings-topbar>strong{font-size:17px}
+.profile-settings-back{display:flex;align-items:center;gap:8px;padding:9px 13px;border:1px solid #f0d5e1;border-radius:22px;background:#fff;color:#a34e70;font-size:12px;font-weight:800}
+.profile-settings-content{max-width:760px;margin:0 auto;padding:26px;border:1px solid #f0d5e1;border-radius:22px;background:#fff;color:#49343b;box-shadow:0 12px 35px #8e4a6312}
+.profile-settings-intro{text-align:center;padding:10px 0 24px}
+.profile-settings-intro>span{width:52px;height:52px;margin:auto;border-radius:17px;background:#fff0f5;color:#e86694;display:grid;place-items:center}
+.profile-settings-intro h1{margin:13px 0 5px;font:900 21px Nunito,sans-serif}
+.profile-settings-intro p{margin:0;color:#987f88;font-size:12px}
+.profile-settings-option{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px;border:1px solid #f3e4e8;border-radius:16px;background:#fff9fb}
+.profile-settings-option strong{font:900 14px Nunito,sans-serif}
+.profile-settings-option p{margin:6px 0 0;color:#987f88;font-size:11px;line-height:1.5}
+.profile-settings-note{text-align:center;color:#987f88;font-size:12px}
+@media(max-width:600px){.profile-settings-topbar{padding:0 14px}.profile-settings-topbar>strong{font-size:14px}.profile-settings-back{font-size:11px;padding:8px 10px}.profile-settings-content{margin:0 14px;padding:20px 16px}}
