@@ -583,3 +583,15 @@
 .post-reply-compose button{display:flex;align-items:center;gap:5px;border:0;border-radius:10px;padding:10px;background:#E86694;color:#fff;font-size:10px;font-weight:900}
 .post-reply-compose button:disabled{opacity:.5}
 @media(max-width:600px){.post-replies-list{margin-left:14px;padding-left:8px}.post-reply-compose{margin-left:14px;flex-direction:column;align-items:stretch}.post-reply-compose button{justify-content:center}}
+
+/* Respostas dos recadinhos do mural */
+.mural-replies{display:grid;gap:9px;margin:12px 0 5px 26px;padding-left:12px;border-left:2px solid #F7D7E2}
+.mural-reply{padding:10px;border:1px solid #F5E5EB;border-radius:12px;background:#FFF8FA}
+.mural-reply>p{margin:8px 0 4px 42px;font-size:12px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.mural-reply-trigger{display:inline-flex;align-items:center;gap:6px;margin:7px 0 2px 26px;padding:7px 10px;border:0;border-radius:9px;background:#FFF0F5;color:#B94473;font-size:10px;font-weight:900}
+.mural-reply-compose{display:flex;gap:8px;align-items:flex-end;margin:9px 0 4px 26px}
+.mural-reply-compose textarea{flex:1;min-width:0;min-height:42px;max-height:100px;resize:vertical;padding:10px;border:1px solid #F0DDE4;border-radius:11px;background:#FFFAFB;color:#49343B;font:12px inherit;outline-color:#E86694}
+.mural-reply-compose button,.mural-reply-delete{display:inline-flex;align-items:center;justify-content:center;gap:5px;border:0;border-radius:9px;padding:9px 11px;background:#E86694;color:#fff;font-size:10px;font-weight:900}
+.mural-reply-compose button:disabled{opacity:.5}
+.mural-reply-delete{margin:4px 0 0 42px;background:#FFF0F5;color:#B94473;padding:6px 8px}
+@media(max-width:600px){.mural-replies{margin-left:12px;padding-left:8px}.mural-reply-trigger,.mural-reply-compose{margin-left:12px}.mural-reply-compose{flex-direction:column;align-items:stretch}}
