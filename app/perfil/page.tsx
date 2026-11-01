@@ -9,7 +9,7 @@ type Profile = {
   id: number; auth_user_id: string; username: string | null; display_name: string | null;
   bio: string; avatar_url: string | null; background_url: string | null;
   is_official: boolean; role_label: string | null; role_description: string | null;
-  created_at: string; hide_profile_visitors?: boolean; mural_is_private?: boolean;
+  created_at: string; username_changed_at?: string | null; hide_profile_visitors?: boolean; mural_is_private?: boolean;
 };
 type PublishedPost = { id:string; post_type:"simple"|"advanced"; title:string|null; content:string; cover_url:string|null; media_url:string|null; media_type:string|null; audio_url:string|null; background_color:string|null; background_image_url:string|null; created_at:string };
 type MuralEntry = { id:string; profile_id:string; author_id:string; content:string; media_url:string|null; media_type:string|null; is_pinned:boolean; created_at:string; author?:Person };
@@ -75,7 +75,7 @@ export default function ProfilePage() {
       const params = new URLSearchParams(window.location.search);
       const requestedUsername = params.get("u");
       const requestedId = params.get("id");
-      let query = supabase.from("profiles").select("id, auth_user_id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, created_at, hide_profile_visitors, mural_is_private");
+      let query = supabase.from("profiles").select("id, auth_user_id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, created_at, username_changed_at, hide_profile_visitors, mural_is_private");
       if (requestedUsername) query = query.eq("username", requestedUsername.replace(/^@/, "").toLowerCase());
       else if (requestedId) query = query.eq("auth_user_id", requestedId);
       else query = query.eq("auth_user_id", user.id);
@@ -192,7 +192,7 @@ export default function ProfilePage() {
     const cleanName = displayName.trim();
     const cleanUsername = username.trim().toLowerCase().replace(/^@/, "");
     if (!cleanName) { setMessage("Escolha um nome para exibir no seu perfil."); return; }
-    if (cleanUsername && !/^[a-z0-9._]{3,20}$/.test(cleanUsername)) { setMessage("O @usuário deve ter de 3 a 20 caracteres: letras, números, ponto ou underline."); return; }
+    if (cleanUsername && !/^[a-z0-9._]{3,20}$/.test(cleanUsername)) { setMessage("O @usuário deve ter de 3 a 20 caracteres: letras, números, ponto ou underline."); return; }\n    if (cleanUsername !== (profile.username || "") && profile.username_changed_at) { const nextAllowed = new Date(profile.username_changed_at); nextAllowed.setMonth(nextAllowed.getMonth() + 2); if (Date.now() < nextAllowed.getTime()) { setMessage(`Você poderá mudar seu @ novamente em ${nextAllowed.toLocaleDateString("pt-BR")}.`); return; } }
     setSaving(true); setMessage("");
     const supabase = getSupabase();
     const { data: { user } } = await supabase.auth.getUser();
@@ -202,8 +202,8 @@ export default function ProfilePage() {
       if (avatarFile) avatarUrl = await uploadSelectedImage(avatarFile, "avatar", user.id);
       if (backgroundFile) backgroundUrl = await uploadSelectedImage(backgroundFile, "background", user.id);
       const values = {auth_user_id:user.id,display_name:cleanName,username:cleanUsername||null,bio:bio.trim().slice(0,160),avatar_url:avatarUrl,background_url:backgroundUrl,updated_at:new Date().toISOString()};
-      const {data,error} = await supabase.from("profiles").upsert(values,{onConflict:"auth_user_id"}).select("id, auth_user_id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, created_at, hide_profile_visitors").single();
-      if (error) setMessage(error.code==="23505" ? "Esse @usuário já está sendo usado. Escolha outro." : `Erro ao salvar: ${error.message}`);
+      const {data,error} = await supabase.from("profiles").upsert(values,{onConflict:"auth_user_id"}).select("id, auth_user_id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, created_at, username_changed_at, hide_profile_visitors").single();
+      if (error) setMessage(error.code==="23505" ? "Esse @usuário já está sendo usado. Escolha outro." : error.message.includes("USERNAME_CHANGE_COOLDOWN") ? "Você só pode mudar seu @ uma vez a cada 2 meses." : `Erro ao salvar: ${error.message}`);
       else { setProfile(data as Profile); setAvatarFile(null); setBackgroundFile(null); setAvatarPreview(""); setBackgroundPreview(""); setEditing(false); setMessage("Seu cantinho foi atualizado! 💗"); }
     } catch { setMessage("Não foi possível enviar uma das imagens. Confira sua conexão e tente novamente."); }
     setSaving(false);
@@ -317,7 +317,7 @@ export default function ProfilePage() {
       {editing&&isOwner&&<section className="profile-edit-card">
         <div className="profile-edit-heading"><strong>Seu cantinho, suas escolhas</strong><span>Personalize suas informações</span></div>
         <label>Nome de exibição<input value={displayName} maxLength={40} onChange={e=>setDisplayName(e.target.value)} placeholder="Como quer ser chamado?"/></label>
-        <label>@Nome de usuário<input value={username} maxLength={20} onChange={e=>setUsername(e.target.value.replace(/^@/,""))} placeholder="seuusuario"/></label>
+        <label>@Nome de usuário<input value={username} maxLength={20} onChange={e=>setUsername(e.target.value.replace(/^@/,""))} placeholder="seuusuario"/>{profile.username_changed_at&&<small className="profile-username-cooldown">O @ poderá ser alterado novamente em {(()=>{const d=new Date(profile.username_changed_at);d.setMonth(d.getMonth()+2);return d.toLocaleDateString("pt-BR")})()}.</small>}</label>
         <label>Biografia<textarea value={bio} maxLength={160} onChange={e=>setBio(e.target.value)} placeholder="Conte um pouquinho sobre você..."/></label>
         <div className="profile-upload-grid">
           <label className="profile-upload-option"><span>Foto / ícone do perfil</span><small>Quadrada · até 2 MB</small><input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>selectProfileImage(e.target.files?.[0],"avatar")}/><b>{avatarFile?"Imagem selecionada ✓":"Escolher imagem"}</b></label>
