@@ -27,7 +27,10 @@ export default function ProfilePage() {
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
-  const [uploading, setUploading] = useState<"avatar" | "background" | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [backgroundPreview, setBackgroundPreview] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [tab, setTab] = useState("Publicações");
@@ -71,8 +74,8 @@ export default function ProfilePage() {
     return () => { active = false; };
   }, [router]);
 
-  async function uploadProfileImage(file: File | undefined, kind: "avatar" | "background") {
-    if (!file || !profile) return;
+  function selectProfileImage(file: File | undefined, kind: "avatar" | "background") {
+    if (!file) return;
     const maxSize = kind === "avatar" ? 2 : 5;
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
       setMessage("Use uma imagem JPG, PNG ou WEBP.");
@@ -82,29 +85,27 @@ export default function ProfilePage() {
       setMessage(`A imagem deve ter no máximo ${maxSize} MB.`);
       return;
     }
-    setUploading(kind);
     setMessage("");
-    const supabase = getSupabase();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.replace("/"); return; }
-    const extension = file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1];
-    const path = `${user.id}/${kind}-${Date.now()}.${extension}`;
-    const { error: uploadError } = await supabase.storage.from("profile-assets").upload(path, file, { contentType: file.type, upsert: true });
-    if (uploadError) {
-      setMessage("Não foi possível enviar a imagem. Confira se o espaço de arquivos do perfil já foi configurado no Supabase.");
-      setUploading(null);
-      return;
-    }
-    const { data: publicData } = supabase.storage.from("profile-assets").getPublicUrl(path);
-    const field = kind === "avatar" ? "avatar_url" : "background_url";
-    const { error: updateError } = await supabase.from("profiles").update({ [field]: publicData.publicUrl, updated_at: new Date().toISOString() }).eq("auth_user_id", user.id);
-    if (updateError) {
-      setMessage("A imagem foi enviada, mas não conseguimos atualizar o perfil. Tente novamente.");
+    const preview = URL.createObjectURL(file);
+    if (kind === "avatar") {
+      setAvatarFile(file);
+      setAvatarPreview(preview);
     } else {
-      setProfile({ ...profile, [field]: publicData.publicUrl });
-      setMessage(kind === "avatar" ? "Foto de perfil atualizada! 💗" : "Fundo do perfil atualizado! ✨");
+      setBackgroundFile(file);
+      setBackgroundPreview(preview);
     }
-    setUploading(null);
+  }
+
+  async function uploadSelectedImage(file: File, kind: "avatar" | "background", userId: string) {
+    const supabase = getSupabase();
+    const extension = file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1];
+    const path = `${userId}/${kind}-${Date.now()}.${extension}`;
+    const { error } = await supabase.storage.from("profile-assets").upload(path, file, {
+      contentType: file.type,
+      upsert: false
+    });
+    if (error) throw error;
+    return supabase.storage.from("profile-assets").getPublicUrl(path).data.publicUrl;
   }
 
   async function saveProfile() {
@@ -127,20 +128,38 @@ export default function ProfilePage() {
       router.replace("/");
       return;
     }
-    const values = {
-      auth_user_id: user.id,
-      display_name: cleanName,
-      username: cleanUsername || null,
-      bio: bio.trim().slice(0, 160),
-      updated_at: new Date().toISOString()
-    };
-    const { error } = await supabase.from("profiles").upsert(values, { onConflict: "auth_user_id" }).select("id, auth_user_id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, created_at").single();
-    if (error) {
-      setMessage(error.code === "23505" ? "Esse @usuário já está sendo usado. Escolha outro." : "Não foi possível salvar agora. Confira sua conexão e tente novamente.");
-    } else {
-      setProfile({ ...profile, ...values });
-      setEditing(false);
-      setMessage("Seu cantinho foi atualizado! 💗");
+    try {
+      let avatarUrl = profile.avatar_url;
+      let backgroundUrl = profile.background_url;
+      if (avatarFile) avatarUrl = await uploadSelectedImage(avatarFile, "avatar", user.id);
+      if (backgroundFile) backgroundUrl = await uploadSelectedImage(backgroundFile, "background", user.id);
+
+      const values = {
+        auth_user_id: user.id,
+        display_name: cleanName,
+        username: cleanUsername || null,
+        bio: bio.trim().slice(0, 160),
+        avatar_url: avatarUrl,
+        background_url: backgroundUrl,
+        updated_at: new Date().toISOString()
+      };
+      const { data, error } = await supabase.from("profiles")
+        .upsert(values, { onConflict: "auth_user_id" })
+        .select("id, auth_user_id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, created_at")
+        .single();
+      if (error) {
+        setMessage(error.code === "23505" ? "Esse @usuário já está sendo usado. Escolha outro." : "Não foi possível salvar agora. Confira sua conexão e tente novamente.");
+      } else {
+        setProfile(data as Profile);
+        setAvatarFile(null);
+        setBackgroundFile(null);
+        setAvatarPreview("");
+        setBackgroundPreview("");
+        setEditing(false);
+        setMessage("Seu cantinho foi atualizado! 💗");
+      }
+    } catch {
+      setMessage("Não foi possível enviar uma das imagens. Confira sua conexão e tente novamente.");
     }
     setSaving(false);
   }
@@ -160,11 +179,11 @@ export default function ProfilePage() {
         <button className="profile-back" aria-label="Mais opções" onClick={() => setMessage("Mais opções estarão disponíveis em breve.")}><MoreHorizontal size={21} /></button>
       </header>
 
-      <section className="profile-cover">
+      <section className="profile-cover" style={(backgroundPreview || profile?.background_url) ? { backgroundImage: `linear-gradient(145deg, rgba(48,28,55,.55), rgba(33,25,35,.72)), url("${backgroundPreview || profile?.background_url}")`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}>
         <div className="profile-cover-glow" />
         <div className="profile-hero">
           <div className="profile-avatar-wrap">
-            {profile?.avatar_url ? <img src={profile.avatar_url} alt="Foto do perfil" /> : <span>{initial}</span>}
+            {avatarPreview || profile?.avatar_url ? <img src={avatarPreview || profile?.avatar_url || ""} alt="Foto do perfil" /> : <span>{initial}</span>}
             <i />
           </div>
           <div className="profile-identity">
@@ -195,8 +214,8 @@ export default function ProfilePage() {
         <label>@Nome de usuário<input value={username} maxLength={20} onChange={event => setUsername(event.target.value.replace(/^@/, ""))} placeholder="seuusuario" /></label>
         <label>Biografia<textarea value={bio} maxLength={160} onChange={event => setBio(event.target.value)} placeholder="Conte um pouquinho sobre você..." /></label>
         <div className="profile-upload-grid">
-          <label className="profile-upload-option"><span>Foto / ícone do perfil</span><small>Quadrada · até 2 MB</small><input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => uploadProfileImage(event.target.files?.[0], "avatar")} /><b>{uploading === "avatar" ? "Enviando..." : "Escolher imagem"}</b></label>
-          <label className="profile-upload-option"><span>Fundo do perfil</span><small>Vertical · até 5 MB</small><input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => uploadProfileImage(event.target.files?.[0], "background")} /><b>{uploading === "background" ? "Enviando..." : "Escolher fundo"}</b></label>
+          <label className="profile-upload-option"><span>Foto / ícone do perfil</span><small>Quadrada · até 2 MB</small><input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => selectProfileImage(event.target.files?.[0], "avatar")} /><b>{avatarFile ? "Imagem selecionada ✓" : "Escolher imagem"}</b></label>
+          <label className="profile-upload-option"><span>Fundo do perfil</span><small>Vertical · até 5 MB</small><input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => selectProfileImage(event.target.files?.[0], "background")} /><b>{backgroundFile ? "Fundo selecionado ✓" : "Escolher fundo"}</b></label>
         </div>
         <div className="profile-edit-footer"><small>{bio.length}/160</small><button onClick={saveProfile} disabled={saving}><Save size={16} /> {saving ? "Salvando..." : "Salvar alterações"}</button></div>
       </section>}
