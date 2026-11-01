@@ -115,6 +115,16 @@ export default function PostDetailPage() {
     else setComments(old=>old.filter(c=>c.id!==id));
   }
 
+  async function deletePost(){
+    if(!post||post.author_id!==userId)return;
+    if(!window.confirm("Tem certeza que deseja apagar esta publicação? Essa ação não pode ser desfeita."))return;
+    setBusy(true);
+    const {error}=await getSupabase().from("social_posts").delete().eq("id",post.id).eq("author_id",userId);
+    setBusy(false);
+    if(error){setNotice("Não foi possível apagar a publicação.");return;}
+    router.push("/perfil");
+  }
+
   if(loading)return <main className="post-detail-page"><p className="post-detail-loading">Abrindo publicação... 💗</p></main>;
   if(!post)return <main className="post-detail-page"><button className="post-back" onClick={()=>router.back()}><ArrowLeft size={18}/> Voltar</button><p className="post-detail-loading">{notice||"Publicação não encontrada."}</p></main>;
 
@@ -122,7 +132,7 @@ export default function PostDetailPage() {
   const authorName=person?.display_name||"Pessoa Mimimi";
   const authorHandle="@"+(person?.username||"membro");
   return <main className="post-detail-page">
-    <header className="post-detail-top"><button className="post-back" onClick={()=>router.back()}><ArrowLeft size={18}/> Voltar</button><strong>Publicação</strong><span/></header>
+    <header className="post-detail-top"><button className="post-back" onClick={()=>router.back()}><ArrowLeft size={18}/> Voltar</button><strong>Publicação</strong>{owner&&<button className="post-delete-button" onClick={()=>void deletePost()} disabled={busy}><Trash2 size={15}/> Apagar post</button>}</header>
     <article className="post-detail-card" style={{backgroundColor:post.background_color||"#fff",backgroundImage:post.background_image_url?`linear-gradient(#0002,#0002),url("${post.background_image_url}")`:undefined,backgroundSize:"cover",backgroundPosition:"center"}}>
       <button className="post-detail-author" onClick={()=>router.push("/perfil?id="+encodeURIComponent(post.author_id))}>
         <span className="post-detail-avatar">{person?.avatar_url?<img src={person.avatar_url} alt=""/>:authorName.charAt(0)}</span>
