@@ -34,6 +34,8 @@ export default function ProfilePage() {
   const [tab, setTab] = useState("Publicações");
   const [showRoleInfo, setShowRoleInfo] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<"main"|"account">("main");
+  const [signingOut, setSigningOut] = useState(false);
   const [stats, setStats] = useState<SocialStats>({followers_count:0,following_count:0,views_count:0,is_following:false,viewers:[],viewers_hidden:false});
   const [socialList, setSocialList] = useState<Person[]>([]);
   const [listTitle, setListTitle] = useState("");
@@ -254,11 +256,20 @@ export default function ProfilePage() {
   const joined = profile.created_at ? new Date(profile.created_at).toLocaleDateString("pt-BR",{day:"numeric",month:"short",year:"numeric"}) : "recentemente";
   const initial = name.trim().charAt(0).toUpperCase() || "M";
 
+  async function signOut() {
+    if (signingOut) return;
+    setSigningOut(true);
+    const { error } = await getSupabase().auth.signOut();
+    if (error) { setMessage("Não foi possível sair da conta. Tente novamente."); setSigningOut(false); return; }
+    router.replace("/");
+    router.refresh();
+  }
+
   if (settingsOpen) return (
     <main className="profile-page profile-settings-page">
       <header className="profile-topbar profile-settings-topbar">
-        <button className="profile-settings-back" aria-label="Voltar ao perfil" onClick={()=>setSettingsOpen(false)}><ArrowLeft size={21}/></button>
-        <strong>Opções do perfil</strong>
+        <button className="profile-settings-back" aria-label="Voltar" onClick={()=>settingsTab==="account"?setSettingsTab("main"):setSettingsOpen(false)}><ArrowLeft size={21}/></button>
+        <strong>{settingsTab==="account"?"Conta":"Opções do perfil"}</strong>
         <span/>
       </header>
       <section className="profile-settings-content">
