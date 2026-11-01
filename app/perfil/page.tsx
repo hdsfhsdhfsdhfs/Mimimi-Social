@@ -192,7 +192,8 @@ export default function ProfilePage() {
     const cleanName = displayName.trim();
     const cleanUsername = username.trim().toLowerCase().replace(/^@/, "");
     if (!cleanName) { setMessage("Escolha um nome para exibir no seu perfil."); return; }
-    if (cleanUsername && !/^[a-z0-9._]{3,20}$/.test(cleanUsername)) { setMessage("O @usuário deve ter de 3 a 20 caracteres: letras, números, ponto ou underline."); return; }\n    if (cleanUsername !== (profile.username || "") && profile.username_changed_at) { const nextAllowed = new Date(profile.username_changed_at); nextAllowed.setMonth(nextAllowed.getMonth() + 2); if (Date.now() < nextAllowed.getTime()) { setMessage(`Você poderá mudar seu @ novamente em ${nextAllowed.toLocaleDateString("pt-BR")}.`); return; } }
+    if (cleanUsername && !/^[a-z0-9._]{3,20}$/.test(cleanUsername)) { setMessage("O @usuário deve ter de 3 a 20 caracteres: letras, números, ponto ou underline."); return; }
+    if (cleanUsername !== (profile.username || "") && profile.username_changed_at) { const nextAllowed = new Date(profile.username_changed_at); nextAllowed.setMonth(nextAllowed.getMonth() + 2); if (Date.now() < nextAllowed.getTime()) { setMessage(`Você poderá mudar seu @ novamente em ${nextAllowed.toLocaleDateString("pt-BR")}.`); return; } }
     setSaving(true); setMessage("");
     const supabase = getSupabase();
     const { data: { user } } = await supabase.auth.getUser();
