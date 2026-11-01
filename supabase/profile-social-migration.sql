@@ -113,7 +113,7 @@ begin
       )
     ),
     'viewers', case
-      when is_private then '[]'::jsonb
+      when is_private and auth.uid() <> target_profile_id then '[]'::jsonb
       else coalesce((
         select jsonb_agg(jsonb_build_object(
           'auth_user_id', v.viewer_id,
