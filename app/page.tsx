@@ -106,7 +106,7 @@ export default function HomePage() {
         <div className="top-actions">
           <button className="icon-button" aria-label="Atividades" onClick={() => setNotice("Você está em dia com suas atividades!")}><Bell size={20} /><i /></button>
           <button className="icon-button" aria-label="Alternar tema" onClick={() => setDark(!dark)}>{dark ? <Sun size={20} /> : <Moon size={20} />}</button>
-          <button className="profile-mini" aria-label="Abrir perfil" onClick={() => setNotice("Seu perfil será configurado em breve.")}>M</button>
+          <button className="profile-mini" aria-label="Abrir perfil" onClick={() => { window.location.href = "/perfil"; }}>M</button>
         </div>
       </header>
 
