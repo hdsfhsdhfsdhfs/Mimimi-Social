@@ -161,7 +161,7 @@ export default function PostDetailPage() {
   return <main className="post-detail-page">
     <header className="post-detail-top"><button className="post-back" onClick={()=>router.back()}><ArrowLeft size={18}/> Voltar</button><strong>Publicação</strong>{owner&&<button className="post-delete-button" onClick={()=>void deletePost()} disabled={busy}><Trash2 size={15}/> Apagar post</button>}</header>
     <article className="post-detail-card" style={{backgroundColor:post.background_color||"#fff",backgroundImage:post.background_image_url?`linear-gradient(#0002,#0002),url("${post.background_image_url}")`:undefined,backgroundSize:"cover",backgroundPosition:"center"}}>
-      <button className="post-detail-author" onClick={()=>router.push("/perfil?id="+encodeURIComponent(post.author_id))}>
+      <button className="post-detail-author" onClick={()=>window.location.assign("/perfil?id="+encodeURIComponent(post.author_id))}>
         <span className="post-detail-avatar">{person?.avatar_url?<img src={person.avatar_url} alt=""/>:authorName.charAt(0)}</span>
         <span><strong>{authorName}</strong><small>{authorHandle} · {new Date(post.created_at).toLocaleString("pt-BR")}</small><span className="social-post-author-badges">{person?.role_label&&<b className="social-role-badge">{person.role_label}</b>}{person?.is_official&&<b className="social-verified-badge">✓ Verificado</b>}</span></span>
       </button>
