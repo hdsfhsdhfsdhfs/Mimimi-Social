@@ -358,3 +358,13 @@
 .profile-blurred-row span{height:8px;width:95px;border-radius:8px;background:#d8b6c4}
 .profile-blurred-row b{height:7px;width:55px;border-radius:8px;background:#ead5dc}
 @media(max-width:700px){.profile-stats>button{min-height:68px;border-radius:13px}.profile-stats>button strong{font-size:20px}.profile-stats>button span{font-size:9px}.profile-privacy-card{margin-left:12px;margin-right:12px;padding:14px}.profile-modal-backdrop{align-items:end;padding:0}.profile-people-modal{width:100%;max-height:80vh;border-radius:22px 22px 0 0}}
+
+
+.profile-more-wrap{position:relative;display:flex;align-items:center}
+.profile-more-menu{position:absolute;z-index:30;right:0;top:48px;width:min(290px,calc(100vw - 36px));padding:15px;border:1px solid #f3dce5;border-radius:16px;background:#fff;color:#49343b;box-shadow:0 14px 38px #160e2033}
+.profile-more-menu>strong{display:block;margin-bottom:11px;color:#a34e70;font:900 13px Nunito,sans-serif}
+.profile-more-menu>p{margin:0;color:#987f88;font-size:12px}
+.profile-more-privacy{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.profile-more-privacy>span{display:grid;gap:4px}
+.profile-more-privacy b{font-size:12px}
+.profile-more-privacy small{color:#987f88;font-size:10px;line-height:1.4}
