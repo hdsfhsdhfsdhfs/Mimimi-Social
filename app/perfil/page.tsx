@@ -287,13 +287,14 @@ export default function ProfilePage() {
             <span className="profile-joined">Membro desde {joined}</span>
           </div>
           <p className="profile-bio">{profile.bio||"Este cantinho está esperando por uma descrição especial. ♡"}</p>
-          {isOwner ? <button className="profile-edit-button" onClick={()=>{setEditing(!editing);setMessage("");}}><Edit3 size={16}/>{editing?"Fechar edição":"Editar perfil"}</button> : <button className="profile-follow-button" onClick={toggleFollow} disabled={followingBusy}>{stats.is_following?<><UserCheck size={16}/> Seguindo</>:<><UserPlus size={16}/> Seguir</>}</button>}
+          {isOwner && <button className="profile-edit-button" onClick={()=>{setEditing(!editing);setMessage("");}}><Edit3 size={16}/>{editing?"Fechar edição":"Editar perfil"}</button>}
         </div>
         <div className="profile-stats">
           <button onClick={()=>openPeopleList("followers")}><strong>{stats.followers_count}</strong><span><Users size={14}/> Seguidores</span></button>
           <button onClick={()=>openPeopleList("following")}><strong>{stats.following_count}</strong><span><Users size={14}/> Seguindo</span></button>
           <button onClick={()=>openPeopleList("viewers")}><strong>{stats.views_count}</strong><span><Eye size={14}/> Visitas</span></button>
         </div>
+        {!isOwner&&<div className="profile-contact-actions"><button className="profile-follow-button" onClick={toggleFollow} disabled={followingBusy}>{stats.is_following?<><UserCheck size={16}/> Seguindo</>:<><UserPlus size={16}/> Seguir</>}</button><button className="profile-chat-button" onClick={()=>router.push("/chat?u="+encodeURIComponent(profile.auth_user_id))}><MessageCircle size={16}/> Chat</button></div>}
       </section>
       {editing&&isOwner&&<section className="profile-edit-card">
         <div className="profile-edit-heading"><strong>Seu cantinho, suas escolhas</strong><span>Personalize suas informações</span></div>
