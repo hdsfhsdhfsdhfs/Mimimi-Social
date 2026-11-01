@@ -11,6 +11,7 @@ type Profile = {
   display_name: string | null;
   bio: string;
   avatar_url: string | null;
+  background_url: string | null;
   created_at: string;
 };
 
@@ -22,6 +23,7 @@ export default function ProfilePage() {
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
+  const [uploading, setUploading] = useState<"avatar" | "background" | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [tab, setTab] = useState("Publicações");
@@ -35,7 +37,7 @@ export default function ProfilePage() {
         router.replace("/");
         return;
       }
-      const { data, error } = await supabase.from("profiles").select("id, username, display_name, bio, avatar_url, created_at").eq("id", user.id).maybeSingle();
+      const { data, error } = await supabase.from("profiles").select("id, username, display_name, bio, avatar_url, background_url, created_at").eq("id", user.id).maybeSingle();
       if (!active) return;
       if (error) {
         setMessage("Não foi possível carregar seu perfil. Tente novamente.");
@@ -46,6 +48,7 @@ export default function ProfilePage() {
           display_name: user.user_metadata?.display_name || user.email?.split("@")[0] || "Meu perfil",
           bio: "",
           avatar_url: null,
+          background_url: null,
           created_at: user.created_at
         };
         setProfile(current as Profile);
@@ -58,6 +61,42 @@ export default function ProfilePage() {
     loadProfile();
     return () => { active = false; };
   }, [router]);
+
+  async function uploadProfileImage(file: File | undefined, kind: "avatar" | "background") {
+    if (!file || !profile) return;
+    const maxSize = kind === "avatar" ? 2 : 5;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setMessage("Use uma imagem JPG, PNG ou WEBP.");
+      return;
+    }
+    if (file.size > maxSize * 1024 * 1024) {
+      setMessage(`A imagem deve ter no máximo ${maxSize} MB.`);
+      return;
+    }
+    setUploading(kind);
+    setMessage("");
+    const supabase = getSupabase();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { router.replace("/"); return; }
+    const extension = file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1];
+    const path = `${user.id}/${kind}-${Date.now()}.${extension}`;
+    const { error: uploadError } = await supabase.storage.from("profile-assets").upload(path, file, { contentType: file.type, upsert: true });
+    if (uploadError) {
+      setMessage("Não foi possível enviar a imagem. Confira se o espaço de arquivos do perfil já foi configurado no Supabase.");
+      setUploading(null);
+      return;
+    }
+    const { data: publicData } = supabase.storage.from("profile-assets").getPublicUrl(path);
+    const field = kind === "avatar" ? "avatar_url" : "background_url";
+    const { error: updateError } = await supabase.from("profiles").update({ [field]: publicData.publicUrl, updated_at: new Date().toISOString() }).eq("id", user.id);
+    if (updateError) {
+      setMessage("A imagem foi enviada, mas não conseguimos atualizar o perfil. Tente novamente.");
+    } else {
+      setProfile({ ...profile, [field]: publicData.publicUrl });
+      setMessage(kind === "avatar" ? "Foto de perfil atualizada! 💗" : "Fundo do perfil atualizado! ✨");
+    }
+    setUploading(null);
+  }
 
   async function saveProfile() {
     if (!profile) return;
@@ -105,7 +144,7 @@ export default function ProfilePage() {
   const initial = name.trim().charAt(0).toUpperCase() || "M";
 
   return (
-    <main className="profile-page">
+    <main className="profile-page" style={profile?.background_url ? { backgroundImage: `linear-gradient(180deg, rgba(33,25,35,.35), rgba(33,25,35,.82)), url("${profile.background_url}")`, backgroundSize: "cover", backgroundPosition: "center top", backgroundAttachment: "fixed" } : undefined}>
       <header className="profile-topbar">
         <button className="profile-back" onClick={() => router.push("/")} aria-label="Voltar ao início"><ArrowLeft size={20} /></button>
         <strong>Mimimi</strong>
@@ -141,6 +180,10 @@ export default function ProfilePage() {
         <label>Nome de exibição<input value={displayName} maxLength={40} onChange={event => setDisplayName(event.target.value)} placeholder="Como quer ser chamado?" /></label>
         <label>@Nome de usuário<input value={username} maxLength={20} onChange={event => setUsername(event.target.value.replace(/^@/, ""))} placeholder="seuusuario" /></label>
         <label>Biografia<textarea value={bio} maxLength={160} onChange={event => setBio(event.target.value)} placeholder="Conte um pouquinho sobre você..." /></label>
+        <div className="profile-upload-grid">
+          <label className="profile-upload-option"><span>Foto / ícone do perfil</span><small>Quadrada · até 2 MB</small><input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => uploadProfileImage(event.target.files?.[0], "avatar")} /><b>{uploading === "avatar" ? "Enviando..." : "Escolher imagem"}</b></label>
+          <label className="profile-upload-option"><span>Fundo do perfil</span><small>Vertical · até 5 MB</small><input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => uploadProfileImage(event.target.files?.[0], "background")} /><b>{uploading === "background" ? "Enviando..." : "Escolher fundo"}</b></label>
+        </div>
         <div className="profile-edit-footer"><small>{bio.length}/160</small><button onClick={saveProfile} disabled={saving}><Save size={16} /> {saving ? "Salvando..." : "Salvar alterações"}</button></div>
       </section>}
 
