@@ -6,7 +6,8 @@ import { getSupabase } from "@/lib/supabase";
 import { ArrowLeft, Edit3, MessageCircle, MoreHorizontal, Save, Users, Eye } from "lucide-react";
 
 type Profile = {
-  id: string;
+  id: number;
+  auth_user_id: string;
   username: string | null;
   display_name: string | null;
   bio: string;
@@ -41,13 +42,14 @@ export default function ProfilePage() {
         router.replace("/");
         return;
       }
-      const { data, error } = await supabase.from("profiles").select("id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, created_at").eq("id", user.id).maybeSingle();
+      const { data, error } = await supabase.from("profiles").select("id, auth_user_id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, created_at").eq("auth_user_id", user.id).maybeSingle();
       if (!active) return;
       if (error) {
         setMessage("Não foi possível carregar seu perfil. Tente novamente.");
       } else {
         const current = data || {
-          id: user.id,
+          id: 0,
+          auth_user_id: user.id,
           username: null,
           display_name: user.user_metadata?.display_name || user.email?.split("@")[0] || "Meu perfil",
           bio: "",
@@ -95,7 +97,7 @@ export default function ProfilePage() {
     }
     const { data: publicData } = supabase.storage.from("profile-assets").getPublicUrl(path);
     const field = kind === "avatar" ? "avatar_url" : "background_url";
-    const { error: updateError } = await supabase.from("profiles").update({ [field]: publicData.publicUrl, updated_at: new Date().toISOString() }).eq("id", user.id);
+    const { error: updateError } = await supabase.from("profiles").update({ [field]: publicData.publicUrl, updated_at: new Date().toISOString() }).eq("auth_user_id", user.id);
     if (updateError) {
       setMessage("A imagem foi enviada, mas não conseguimos atualizar o perfil. Tente novamente.");
     } else {
@@ -126,13 +128,13 @@ export default function ProfilePage() {
       return;
     }
     const values = {
-      id: user.id,
+      auth_user_id: user.id,
       display_name: cleanName,
       username: cleanUsername || null,
       bio: bio.trim().slice(0, 160),
       updated_at: new Date().toISOString()
     };
-    const { error } = await supabase.from("profiles").upsert(values).select("id, username, display_name, bio, avatar_url, created_at").single();
+    const { error } = await supabase.from("profiles").upsert(values, { onConflict: "auth_user_id" }).select("id, auth_user_id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, created_at").single();
     if (error) {
       setMessage(error.code === "23505" ? "Esse @usuário já está sendo usado. Escolha outro." : "Não foi possível salvar agora. Confira sua conexão e tente novamente.");
     } else {
