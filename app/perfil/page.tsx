@@ -273,9 +273,16 @@ export default function ProfilePage() {
         <span/>
       </header>
       <section className="profile-settings-content">
-        <div className="profile-settings-intro"><span><Lock size={22}/></span><h1>Privacidade</h1><p>Gerencie quem pode ver suas visitas e quem pode deixar recadinhos no seu mural.</p></div>
-        {isOwner ? <><div className="profile-settings-option"><div><strong>Quem visitou meu perfil</strong><p>{hideVisitors?"Somente você pode ver os nomes e fotos de quem visitou.":"As pessoas podem ver os nomes e fotos de quem visitou."}</p></div><label className="profile-switch"><input type="checkbox" checked={hideVisitors} disabled={privacyBusy} onChange={e=>updateVisitorPrivacy(e.target.checked)}/><span/></label></div><div className="profile-settings-option"><div><strong>Quem pode comentar no meu mural</strong><p>{muralPrivate?"Somente você pode publicar recadinhos. Todos continuam vendo o mural.":"Todas as pessoas podem deixar recadinhos no seu mural."}</p></div><label className="profile-switch"><input type="checkbox" checked={muralPrivate} onChange={e=>toggleMuralPrivacy(e.target.checked)}/><span/></label></div></> : <p className="profile-settings-note">As opções de privacidade só podem ser alteradas pelo dono do perfil.</p>}
-        {message&&<p className="profile-feedback" role="status">{message}</p>}
+        {settingsTab==="main" ? <>
+          <div className="profile-settings-intro"><span><Lock size={22}/></span><h1>Privacidade</h1><p>Gerencie quem pode ver suas visitas e quem pode deixar recadinhos no seu mural.</p></div>
+          {isOwner ? <><div className="profile-settings-option"><div><strong>Quem visitou meu perfil</strong><p>{hideVisitors?"Somente você pode ver os nomes e fotos de quem visitou.":"As pessoas podem ver os nomes e fotos de quem visitou."}</p></div><label className="profile-switch"><input type="checkbox" checked={hideVisitors} disabled={privacyBusy} onChange={e=>updateVisitorPrivacy(e.target.checked)}/><span/></label></div><div className="profile-settings-option"><div><strong>Quem pode comentar no meu mural</strong><p>{muralPrivate?"Somente você pode publicar recadinhos. Todos continuam vendo o mural.":"Todas as pessoas podem deixar recadinhos no seu mural."}</p></div><label className="profile-switch"><input type="checkbox" checked={muralPrivate} onChange={e=>toggleMuralPrivacy(e.target.checked)}/><span/></label></div></> : <p className="profile-settings-note">As opções de privacidade só podem ser alteradas pelo dono do perfil.</p>}
+          <button className="profile-settings-account-link" onClick={()=>{setSettingsTab("account");setMessage("");}}><span><strong>Conta</strong><small>Login, segurança e acesso à sua conta</small></span><span>›</span></button>
+          {message&&<p className="profile-feedback" role="status">{message}</p>}
+        </> : <div className="profile-account-panel">
+          <div className="profile-settings-intro"><span><Users size={22}/></span><h1>Sua conta</h1><p>Você pode sair desta conta e entrar novamente com ela ou com outra conta.</p></div>
+          <button className="profile-signout-button" onClick={signOut} disabled={signingOut}>{signingOut?"Saindo...":"Sair da conta"}</button>
+          {message&&<p className="profile-feedback" role="status">{message}</p>}
+        </div>}
       </section>
     </main>
   );
