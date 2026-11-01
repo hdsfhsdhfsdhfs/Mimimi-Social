@@ -7,7 +7,7 @@ import { ArrowLeft, Edit3, MessageCircle, MoreHorizontal, Save, Users, Eye, User
 
 type Profile = {
   id: number; auth_user_id: string; username: string | null; display_name: string | null;
-  bio: string; avatar_url: string | null; background_url: string | null;
+  bio: string; status_mode?: "online"|"offline"|"emoji"; status_emoji?: string|null; avatar_url: string | null; background_url: string | null;
   is_official: boolean; role_label: string | null; role_description: string | null;
   created_at: string; username_changed_at?: string | null; hide_profile_visitors?: boolean; mural_is_private?: boolean;
 };
@@ -25,7 +25,9 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
-  const [bio, setBio] = useState("");\n  const [statusMode,setStatusMode]=useState<"online"|"offline"|"emoji">("online");\n  const [statusEmoji,setStatusEmoji]=useState("🌸");
+  const [bio, setBio] = useState("");
+  const [statusMode,setStatusMode]=useState<"online"|"offline"|"emoji">("online");
+  const [statusEmoji,setStatusEmoji]=useState("🌸");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState("");
@@ -93,7 +95,9 @@ export default function ProfilePage() {
       setProfile(current);
       setDisplayName(current.display_name || "");
       setUsername(current.username || "");
-      setBio(current.bio || "");\n      setStatusMode(current.status_mode||"online");\n      setStatusEmoji(current.status_emoji||"🌸");
+      setBio(current.bio || "");
+      setStatusMode(current.status_mode||"online");
+      setStatusEmoji(current.status_emoji||"🌸");
       setHideVisitors(!!current.hide_profile_visitors);
       setMuralPrivate(!!(current as any).mural_is_private);
       await loadMural(current.auth_user_id);
@@ -338,6 +342,8 @@ export default function ProfilePage() {
         <label>Nome de exibição<input value={displayName} maxLength={40} onChange={e=>setDisplayName(e.target.value)} placeholder="Como quer ser chamado?"/></label>
         <label>@Nome de usuário<input value={username} maxLength={20} onChange={e=>setUsername(e.target.value.replace(/^@/,""))} placeholder="seuusuario"/>{profile.username_changed_at&&<small className="profile-username-cooldown">O @ poderá ser alterado novamente em {(()=>{const d=new Date(profile.username_changed_at);d.setMonth(d.getMonth()+2);return d.toLocaleDateString("pt-BR")})()}.</small>}</label>
         <label>Biografia<textarea value={bio} maxLength={160} onChange={e=>setBio(e.target.value)} placeholder="Conte um pouquinho sobre você..."/></label>
+         <label>Status do perfil<select value={statusMode} onChange={e=>setStatusMode(e.target.value as "online"|"offline"|"emoji")}><option value="online">🟢 Online</option><option value="offline">⚫ Offline</option><option value="emoji">Usar um emoji</option></select></label>
+         {statusMode==="emoji"&&<label>Seu emoji de status<input value={statusEmoji} maxLength={8} onChange={e=>setStatusEmoji(e.target.value)} placeholder="🌸"/></label>
         <div className="profile-upload-grid">
           <label className="profile-upload-option"><span>Foto / ícone do perfil</span><small>Quadrada · até 2 MB</small><input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>selectProfileImage(e.target.files?.[0],"avatar")}/><b>{avatarFile?"Imagem selecionada ✓":"Escolher imagem"}</b></label>
           <label className="profile-upload-option"><span>Fundo do perfil</span><small>Vertical · até 5 MB</small><input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>selectProfileImage(e.target.files?.[0],"background")}/><b>{backgroundFile?"Fundo selecionado ✓":"Escolher fundo"}</b></label>
@@ -353,7 +359,7 @@ export default function ProfilePage() {
         {(!muralPrivate||isOwner)&&<div className="profile-mural-compose"><div className="profile-mural-compose-title"><MessageCircle size={18}/><strong>Deixe um recadinho</strong></div><textarea value={muralText} maxLength={500} onChange={e=>setMuralText(e.target.value)} placeholder="Escreva algo carinhoso..."/>{muralPreview&&<div className="profile-mural-preview">{muralFile?.type==="image/gif"?<img src={muralPreview} alt="Prévia do GIF"/>:<img src={muralPreview} alt="Prévia da imagem"/>}<button onClick={()=>{setMuralFile(null);setMuralPreview("");}}>Remover</button></div>}<div className="profile-mural-compose-footer"><label className="profile-mural-attach">＋ Foto ou GIF<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e=>chooseMuralFile(e.target.files?.[0])}/></label><button onClick={publishMuralEntry} disabled={muralBusy||(!muralText.trim()&&!muralFile)}>{muralBusy?"Publicando...":"Publicar recado"}</button></div></div>}
         {muralPrivate&&!isOwner&&<p className="profile-mural-private-note"><Lock size={15}/> Este mural está privado para comentários. Você ainda pode ver todos os recados. ♡</p>}
         {muralEntries.length===0?<div className="profile-empty"><MessageCircle size={27}/><strong>Seu mural está esperando carinho!</strong><p>Quando alguém deixar um recadinho, ele aparecerá aqui. ♡</p></div>:<div className="profile-mural-list">{muralEntries.map(entry=><article className="profile-mural-entry" key={entry.id}>{entry.is_pinned&&<span className="profile-mural-pinned">📌 Fixado no mural</span>}<div className="profile-mural-author" role="button" tabIndex={0} onClick={()=>entry.author?.auth_user_id&&window.location.assign("/perfil?id="+encodeURIComponent(entry.author.auth_user_id))} onKeyDown={e=>{if(e.key==="Enter")entry.author?.auth_user_id&&window.location.assign("/perfil?id="+encodeURIComponent(entry.author.auth_user_id));}}>{entry.author?.avatar_url?<img src={entry.author.avatar_url} alt=""/>:<i>{(entry.author?.display_name||entry.author?.username||"?").charAt(0).toUpperCase()}</i>}<span><strong>{entry.author?.display_name||"Pessoa Mimimi"}</strong><small>@{entry.author?.username||"usuario"} · {new Date(entry.created_at).toLocaleDateString("pt-BR")}</small></span></div>{entry.content&&<p>{entry.content}</p>}{entry.media_url&&<img className="profile-mural-media" src={entry.media_url} alt="Imagem ou GIF do mural"/>}
-        <div className="mural-replies">{(entry.replies||[]).map(reply=><div className="mural-reply" key={reply.id}><div className="profile-mural-author" role="button" tabIndex={0} onClick={()=>reply.author?.auth_user_id&&router.push("/perfil?id="+encodeURIComponent(reply.author.auth_user_id))} onKeyDown={e=>{if(e.key==="Enter")reply.author?.auth_user_id&&router.push("/perfil?id="+encodeURIComponent(reply.author.auth_user_id));}}>{reply.author?.avatar_url?<img src={reply.author.avatar_url} alt=""/>:<i>{(reply.author?.display_name||reply.author?.username||"?").charAt(0).toUpperCase()}</i>}<span><strong>{reply.author?.display_name||"Pessoa Mimimi"}</strong><small>@{reply.author?.username||"usuario"} · {new Date(reply.created_at).toLocaleDateString("pt-BR")}</small></span></div><p>{reply.content}</p>{(isOwner||reply.author_id===currentUserId)&&<button className="mural-reply-delete" onClick={()=>void deleteMuralReply(reply)}><Trash2 size={12}/> Apagar resposta</button>}</div>)}</div>
+        <div className="mural-replies">{(entry.replies||[]).map(reply=><div className="mural-reply" key={reply.id}><div className="profile-mural-author" role="button" tabIndex={0} onClick={()=>reply.author?.auth_user_id&&window.location.assign("/perfil?id="+encodeURIComponent(reply.author.auth_user_id))} onKeyDown={e=>{if(e.key==="Enter"&&reply.author?.auth_user_id)window.location.assign("/perfil?id="+encodeURIComponent(reply.author.auth_user_id));}}>{reply.author?.avatar_url?<img src={reply.author.avatar_url} alt=""/>:<i>{(reply.author?.display_name||reply.author?.username||"?").charAt(0).toUpperCase()}</i>}<span><strong>{reply.author?.display_name||"Pessoa Mimimi"}</strong><small>@{reply.author?.username||"usuario"} · {new Date(reply.created_at).toLocaleDateString("pt-BR")}</small></span></div><p>{reply.content}</p>{(isOwner||reply.author_id===currentUserId)&&<button className="mural-reply-delete" onClick={()=>void deleteMuralReply(reply)}><Trash2 size={12}/> Apagar resposta</button>}</div>)}</div>
         {(!muralPrivate||isOwner)&&<><button className="mural-reply-trigger" onClick={()=>setMuralReplyOpen(muralReplyOpen===entry.id?"":entry.id)}><MessageCircle size={14}/> Responder ({(entry.replies||[]).length})</button>{muralReplyOpen===entry.id&&<div className="mural-reply-compose"><textarea value={muralReplyTexts[entry.id]||""} maxLength={1000} onChange={e=>setMuralReplyTexts(old=>({...old,[entry.id]:e.target.value}))} placeholder="Escreva sua resposta... 💗"/><button disabled={muralBusy||!(muralReplyTexts[entry.id]||"").trim()} onClick={()=>void sendMuralReply(entry)}><Send size={14}/> Enviar</button></div>}</>}
         {isOwner&&<div className="profile-mural-actions"><button onClick={()=>manageMuralEntry(entry,"pin")}>{entry.is_pinned?"Desafixar":"Fixar"}</button><button onClick={()=>manageMuralEntry(entry,"delete")}>Apagar</button></div>}</article>)}</div>}
       </div>}
