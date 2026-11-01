@@ -11,6 +11,7 @@ type Profile = {
   is_official: boolean; role_label: string | null; role_description: string | null;
   created_at: string; hide_profile_visitors?: boolean;
 };
+type MuralEntry = { id:string; profile_id:string; author_id:string; content:string; media_url:string|null; media_type:string|null; is_pinned:boolean; created_at:string; author?:Person };
 type Person = { auth_user_id: string; display_name: string | null; username: string | null; avatar_url: string | null; viewed_at?: string };
 type SocialStats = { followers_count: number; following_count: number; views_count: number; is_following: boolean; viewers: Person[]; viewers_hidden: boolean };
 
@@ -39,7 +40,7 @@ export default function ProfilePage() {
   const [listLoading, setListLoading] = useState(false);
   const [followingBusy, setFollowingBusy] = useState(false);
   const [hideVisitors, setHideVisitors] = useState(false);
-  const [privacyBusy, setPrivacyBusy] = useState(false);
+  const [privacyBusy, setPrivacyBusy] = useState(false);\n  const [muralEntries, setMuralEntries] = useState<MuralEntry[]>([]);\n  const [muralPrivate, setMuralPrivate] = useState(false);\n  const [muralText, setMuralText] = useState("");\n  const [muralFile, setMuralFile] = useState<File | null>(null);\n  const [muralPreview, setMuralPreview] = useState("");\n  const [muralBusy, setMuralBusy] = useState(false);
   const isOwner = !!profile && profile.auth_user_id === currentUserId;
 
   async function loadSocial(targetId: string) {
@@ -78,7 +79,7 @@ export default function ProfilePage() {
       setDisplayName(current.display_name || "");
       setUsername(current.username || "");
       setBio(current.bio || "");
-      setHideVisitors(!!current.hide_profile_visitors);
+      setHideVisitors(!!current.hide_profile_visitors);\n      setMuralPrivate(!!(current as any).mural_is_private);\n      await loadMural(current.auth_user_id);
       await supabase.rpc("record_profile_view", { target_profile_id: current.auth_user_id });
       const { data: social } = await supabase.rpc("get_profile_social_stats", { target_profile_id: current.auth_user_id });
       if (active && social) setStats({...social as SocialStats, viewers: (social as SocialStats).viewers || []});
@@ -87,6 +88,64 @@ export default function ProfilePage() {
     loadProfile();
     return () => { active = false; };
   }, [router]);
+
+  async function loadMural(profileId: string) {
+    const supabase = getSupabase();
+    const {data} = await supabase.from("profile_mural_entries").select("id,profile_id,author_id,content,media_url,media_type,is_pinned,created_at").eq("profile_id",profileId).order("is_pinned",{ascending:false}).order("created_at",{ascending:false});
+    if (!data?.length) { setMuralEntries([]); return; }
+    const authorIds = [...new Set(data.map((entry:any)=>entry.author_id))];
+    const {data:authors} = await supabase.from("profiles").select("auth_user_id,display_name,username,avatar_url").in("auth_user_id",authorIds);
+    const byId = new Map((authors||[]).map((person:any)=>[person.auth_user_id,person]));
+    setMuralEntries(data.map((entry:any)=>({...entry,author:byId.get(entry.author_id)})) as MuralEntry[]);
+  }
+
+  function chooseMuralFile(file?: File) {
+    if (!file) return;
+    if (!["image/jpeg","image/png","image/webp","image/gif"].includes(file.type)) { setMessage("Escolha uma imagem JPG, PNG, WEBP ou GIF."); return; }
+    if (file.size > 5*1024*1024) { setMessage("A imagem ou GIF deve ter no máximo 5 MB."); return; }
+    setMuralFile(file); setMuralPreview(URL.createObjectURL(file)); setMessage("");
+  }
+
+  async function publishMuralEntry() {
+    if (!profile || !currentUserId || (!muralText.trim() && !muralFile) || muralBusy) return;
+    if (muralPrivate && !isOwner) { setMessage("Este mural está privado para novos comentários."); return; }
+    setMuralBusy(true); setMessage("");
+    try {
+      let mediaUrl:string|null = null;
+      if (muralFile) {
+        const ext = muralFile.type==="image/jpeg"?"jpg":muralFile.type.split("/")[1];
+        const path = `${currentUserId}/mural-${Date.now()}.${ext}`;
+        const {error:uploadError} = await getSupabase().storage.from("profile-assets").upload(path,muralFile,{contentType:muralFile.type,upsert:false});
+        if (uploadError) throw uploadError;
+        mediaUrl = getSupabase().storage.from("profile-assets").getPublicUrl(path).data.publicUrl;
+      }
+      const {error} = await getSupabase().from("profile_mural_entries").insert({profile_id:profile.auth_user_id,author_id:currentUserId,content:muralText.trim(),media_url:mediaUrl,media_type:muralFile?.type||null});
+      if (error) throw error;
+      setMuralText(""); setMuralFile(null); setMuralPreview("");
+      await loadMural(profile.auth_user_id);
+      setMessage("Recadinho publicado no mural! 💗");
+    } catch (error:any) { setMessage(error?.message||"Não foi possível publicar. Tente novamente."); }
+    setMuralBusy(false);
+  }
+
+  async function toggleMuralPrivacy(next:boolean) {
+    if (!profile || !isOwner) return;
+    const {error} = await getSupabase().from("profiles").update({mural_is_private:next}).eq("auth_user_id",currentUserId);
+    if (error) setMessage("Não foi possível alterar a privacidade do mural.");
+    else { setMuralPrivate(next); setProfile(p=>p?{...p,mural_is_private:next} as Profile:p); setMessage(next?"Mural privado: todos continuam vendo, mas só você pode receber novos comentários. 🔒":"Mural público: todos podem comentar! 💗"); }
+  }
+
+  async function manageMuralEntry(entry:MuralEntry, action:"pin"|"delete") {
+    if (!profile || !isOwner) return;
+    if (action==="delete") {
+      const {error} = await getSupabase().from("profile_mural_entries").delete().eq("id",entry.id);
+      if (error) setMessage("Não foi possível apagar este recado.");
+    } else {
+      const {error} = await getSupabase().from("profile_mural_entries").update({is_pinned:!entry.is_pinned}).eq("id",entry.id);
+      if (error) setMessage("Não foi possível atualizar o recado.");
+    }
+    await loadMural(profile.auth_user_id);
+  }
 
   function selectProfileImage(file: File | undefined, kind: "avatar" | "background") {
     if (!file) return;
@@ -233,7 +292,12 @@ export default function ProfilePage() {
       <div className="profile-tabs">{["Publicações","Mural","Sobre mim"].map(item=><button key={item} className={tab===item?"active":""} onClick={()=>setTab(item)}>{item}</button>)}</div>
       <section className="profile-tab-content">
         {tab==="Publicações"&&<div className="profile-empty"><span>✧</span><strong>Suas histórias começam aqui</strong><p>Quando você publicar algo, suas publicações aparecerão neste espaço.</p></div>}
-        {tab==="Mural"&&<div className="profile-empty"><MessageCircle size={27}/><strong>Seu mural está chegando!</strong><p>Em breve, seus amigos poderão deixar mensagens neste cantinho.</p></div>}
+        {tab==="Mural"&&<div className="profile-mural">
+        {isOwner&&<div className="profile-mural-privacy"><div><strong><Lock size={15}/> Privacidade do mural</strong><small>{muralPrivate?"Todos podem ver; somente você pode comentar.":"Todos podem ver e comentar."}</small></div><label className="profile-switch"><input type="checkbox" checked={muralPrivate} onChange={e=>toggleMuralPrivacy(e.target.checked)}/><span/></label></div>}
+        {(!muralPrivate||isOwner)&&<div className="profile-mural-compose"><div className="profile-mural-compose-title"><MessageCircle size={18}/><strong>Deixe um recadinho</strong></div><textarea value={muralText} maxLength={500} onChange={e=>setMuralText(e.target.value)} placeholder="Escreva algo carinhoso..."/>{muralPreview&&<div className="profile-mural-preview">{muralFile?.type==="image/gif"?<img src={muralPreview} alt="Prévia do GIF"/>:<img src={muralPreview} alt="Prévia da imagem"/>}<button onClick={()=>{setMuralFile(null);setMuralPreview("");}}>Remover</button></div>}<div className="profile-mural-compose-footer"><label className="profile-mural-attach">＋ Foto ou GIF<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e=>chooseMuralFile(e.target.files?.[0])}/></label><button onClick={publishMuralEntry} disabled={muralBusy||(!muralText.trim()&&!muralFile)}>{muralBusy?"Publicando...":"Publicar recado"}</button></div></div>}
+        {muralPrivate&&!isOwner&&<p className="profile-mural-private-note"><Lock size={15}/> Este mural está privado para comentários. Você ainda pode ver todos os recados. ♡</p>}
+        {muralEntries.length===0?<div className="profile-empty"><MessageCircle size={27}/><strong>Seu mural está esperando carinho!</strong><p>Quando alguém deixar um recadinho, ele aparecerá aqui. ♡</p></div>:<div className="profile-mural-list">{muralEntries.map(entry=><article className="profile-mural-entry" key={entry.id}>{entry.is_pinned&&<span className="profile-mural-pinned">📌 Fixado no mural</span>}<div className="profile-mural-author">{entry.author?.avatar_url?<img src={entry.author.avatar_url} alt=""/>:<i>{(entry.author?.display_name||entry.author?.username||"?").charAt(0).toUpperCase()}</i>}<span><strong>{entry.author?.display_name||"Pessoa Mimimi"}</strong><small>@{entry.author?.username||"usuario"} · {new Date(entry.created_at).toLocaleDateString("pt-BR")}</small></span></div>{entry.content&&<p>{entry.content}</p>}{entry.media_url&&<img className="profile-mural-media" src={entry.media_url} alt="Imagem ou GIF do mural"/>}{isOwner&&<div className="profile-mural-actions"><button onClick={()=>manageMuralEntry(entry,"pin")}>{entry.is_pinned?"Desafixar":"Fixar"}</button><button onClick={()=>manageMuralEntry(entry,"delete")}>Apagar</button></div>}</article>)}</div>}
+      </div>}
         {tab==="Sobre mim"&&<div className="profile-about"><h2>Sobre mim</h2><p>{profile.bio||"Ainda não adicionou uma biografia."}</p><span>Membro do Mimimi desde {joined}</span></div>}
       </section>
       <footer className="profile-footer">Feito com carinho ♡ Mimimi</footer>
