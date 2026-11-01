@@ -603,3 +603,7 @@
 /* Perfis clicáveis: avatares e nomes de pessoas */
 .profile-person[role="button"], .profile-mural-author[role="button"], .post-comment-author[role="button"] { cursor: pointer; }
 .profile-person[role="button"]:focus-visible, .profile-mural-author[role="button"]:focus-visible, .post-comment-author[role="button"]:focus-visible { outline: 2px solid var(--pink, #E86694); outline-offset: 3px; border-radius: 12px; }
+
+
+/* Profile presence status */
+.profile-user-status{display:inline-flex;align-items:center;gap:6px;margin-top:7px;padding:4px 10px;border-radius:999px;background:#e9f8ef;color:#287a49;font-size:12px;font-weight:700;width:max-content}.profile-user-status i{width:7px;height:7px;border-radius:50%;background:#39b96b;display:inline-block}.profile-user-status.offline{background:#f0edf1;color:#827782}.profile-user-status.offline i{background:#a49aa5}.profile-user-status.emoji{background:#fff0f5;color:#9b5571;font-size:16px}.profile-edit-card select{width:100%;padding:12px 14px;border:1px solid var(--border,#ead9e0);border-radius:12px;background:var(--card,#fff);color:var(--text,#49343b);font:inherit;margin-top:7px}
