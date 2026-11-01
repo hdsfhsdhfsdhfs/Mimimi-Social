@@ -11,6 +11,7 @@ type Profile = {
   is_official: boolean; role_label: string | null; role_description: string | null;
   created_at: string; hide_profile_visitors?: boolean; mural_is_private?: boolean;
 };
+type PublishedPost = { id:string; post_type:"simple"|"advanced"; title:string|null; content:string; cover_url:string|null; media_url:string|null; media_type:string|null; audio_url:string|null; background_color:string|null; background_image_url:string|null; created_at:string };
 type MuralEntry = { id:string; profile_id:string; author_id:string; content:string; media_url:string|null; media_type:string|null; is_pinned:boolean; created_at:string; author?:Person };
 type Person = { auth_user_id: string; display_name: string | null; username: string | null; avatar_url: string | null; viewed_at?: string };
 type SocialStats = { followers_count: number; following_count: number; views_count: number; is_following: boolean; viewers: Person[]; viewers_hidden: boolean };
@@ -47,6 +48,7 @@ export default function ProfilePage() {
   const [muralFile, setMuralFile] = useState<File | null>(null);
   const [muralPreview, setMuralPreview] = useState("");
   const [muralBusy, setMuralBusy] = useState(false);
+  const [publishedPosts, setPublishedPosts] = useState<PublishedPost[]>([]);
   const isOwner = !!profile && profile.auth_user_id === currentUserId;
 
   async function loadSocial(targetId: string) {
@@ -88,6 +90,7 @@ export default function ProfilePage() {
       setHideVisitors(!!current.hide_profile_visitors);
       setMuralPrivate(!!(current as any).mural_is_private);
       await loadMural(current.auth_user_id);
+      await loadPublishedPosts(current.auth_user_id);
       await supabase.rpc("record_profile_view", { target_profile_id: current.auth_user_id });
       const { data: social } = await supabase.rpc("get_profile_social_stats", { target_profile_id: current.auth_user_id });
       if (active && social) setStats({...social as SocialStats, viewers: (social as SocialStats).viewers || []});
@@ -105,6 +108,11 @@ export default function ProfilePage() {
     const {data:authors} = await supabase.from("profiles").select("auth_user_id,display_name,username,avatar_url").in("auth_user_id",authorIds);
     const byId = new Map((authors||[]).map((person:any)=>[person.auth_user_id,person]));
     setMuralEntries(data.map((entry:any)=>({...entry,author:byId.get(entry.author_id)})) as MuralEntry[]);
+  }
+
+  async function loadPublishedPosts(authorId: string) {
+    const {data,error} = await getSupabase().from("social_posts").select("id,post_type,title,content,cover_url,media_url,media_type,audio_url,background_color,background_image_url,created_at").eq("author_id",authorId).eq("is_draft",false).order("created_at",{ascending:false});
+    if (!error) setPublishedPosts((data||[]) as PublishedPost[]);
   }
 
   function chooseMuralFile(file?: File) {
@@ -299,7 +307,7 @@ export default function ProfilePage() {
       {message&&<p className="profile-feedback" role="status">{message}</p>}
       <div className="profile-tabs">{["Publicações","Mural","Sobre mim"].map(item=><button key={item} className={tab===item?"active":""} onClick={()=>setTab(item)}>{item}</button>)}</div>
       <section className="profile-tab-content">
-        {tab==="Publicações"&&<div className="profile-empty"><span>✧</span><strong>Suas histórias começam aqui</strong><p>Quando você publicar algo, suas publicações aparecerão neste espaço.</p></div>}
+        {tab==="Publicações"&&<div className="profile-posts-section">{isOwner&&<button className="profile-create-post" onClick={()=>router.push("/publicar")}>＋ Criar publicação</button>}{publishedPosts.length===0?<div className="profile-empty"><span>✧</span><strong>Suas histórias começam aqui</strong><p>Quando você publicar algo, suas publicações aparecerão neste espaço.</p>{isOwner&&<button className="profile-create-post-secondary" onClick={()=>router.push("/publicar")}>＋ Fazer primeira publicação</button>}</div>:<div className="profile-posts-list">{publishedPosts.map(post=><article className="profile-social-post" key={post.id} style={{backgroundColor:post.background_color||"#FFFFFF",backgroundImage:post.background_image_url?`url("${post.background_image_url}")`:undefined,backgroundSize:"cover",backgroundPosition:"center"}}>{post.cover_url&&<img className="profile-social-post-cover" src={post.cover_url} alt="Capa da publicação"/>}{post.title&&<h2>{post.title}</h2>}{post.content&&<p>{post.content}</p>}{post.media_url&&(post.media_type?.startsWith("video/")?<video src={post.media_url} controls/>:<img src={post.media_url} alt="Mídia da publicação"/>)}{post.audio_url&&<audio src={post.audio_url} controls/>}<small>{new Date(post.created_at).toLocaleDateString("pt-BR")}</small></article>)}</div>}</div>}
         {tab==="Mural"&&<div className="profile-mural">
         
         {(!muralPrivate||isOwner)&&<div className="profile-mural-compose"><div className="profile-mural-compose-title"><MessageCircle size={18}/><strong>Deixe um recadinho</strong></div><textarea value={muralText} maxLength={500} onChange={e=>setMuralText(e.target.value)} placeholder="Escreva algo carinhoso..."/>{muralPreview&&<div className="profile-mural-preview">{muralFile?.type==="image/gif"?<img src={muralPreview} alt="Prévia do GIF"/>:<img src={muralPreview} alt="Prévia da imagem"/>}<button onClick={()=>{setMuralFile(null);setMuralPreview("");}}>Remover</button></div>}<div className="profile-mural-compose-footer"><label className="profile-mural-attach">＋ Foto ou GIF<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e=>chooseMuralFile(e.target.files?.[0])}/></label><button onClick={publishMuralEntry} disabled={muralBusy||(!muralText.trim()&&!muralFile)}>{muralBusy?"Publicando...":"Publicar recado"}</button></div></div>}
