@@ -9,6 +9,7 @@ import {
   Moon, Sun, Sparkles, ChevronRight, X, PawPrint, Bookmark, Menu
 } from "lucide-react";
 
+type Activity = {id:string;actor_id:string;action_type:string;post_id:string|null;created_at:string;read_at:string|null;actor_name:string;actor_username:string|null;actor_avatar:string|null};
 type DbPost = { id:string; author_id:string; post_type:"simple"|"advanced"; title:string|null; content:string; cover_url:string|null; media_url:string|null; media_type:string|null; audio_url:string|null; background_color:string; background_image_url:string|null; created_at:string; author_name:string; author_handle:string; author_avatar:string|null; author_role:string|null; author_verified:boolean; likes_count:number; comments_count:number; liked_by_me:boolean };
 
 type Post = {
@@ -53,6 +54,9 @@ export default function HomePage() {
   const [notice, setNotice] = useState("");
   const [plusOpen, setPlusOpen] = useState(false);
   const [socialPosts, setSocialPosts] = useState<DbPost[]>([]);
+  const [activities,setActivities] = useState<Activity[]>([]);
+  const [activitiesOpen,setActivitiesOpen] = useState(false);
+  const unreadActivities = activities.filter(item=>!item.read_at).length;
 
   useEffect(() => {
     const supabase = getSupabase();
@@ -157,7 +161,17 @@ export default function HomePage() {
         <a className="brand" href="#" onClick={() => setActive("Início")}><span className="brand-mark"><img src="/mimimi-icon.webp" alt="" /></span><span>Mimimi</span></a>
         <div className="search-wrap"><Search size={18} /><input aria-label="Pesquisar" placeholder="Pesquisar pessoas, posts e comunidades..." /></div>
         <div className="top-actions">
-          <button className="icon-button" aria-label="Atividades" onClick={() => setNotice("Você está em dia com suas atividades!")}><Bell size={20} /><i /></button>
+          <div className="mimimi-activity-wrap" style={{position:"relative"}}>
+            <button className="icon-button" aria-label="Atividades" onClick={()=>void openActivities()}><Bell size={20}/>{unreadActivities>0&&<i/>}</button>
+            {activitiesOpen&&<div className="mimimi-activity-panel" style={{position:"absolute",right:0,top:"calc(100% + 12px)",width:"min(360px,90vw)",maxHeight:420,overflowY:"auto",zIndex:1000,background:"var(--card, #fff)",border:"1px solid var(--border, #f0dce4)",borderRadius:18,boxShadow:"0 12px 36px #39202b22",padding:14,color:"var(--text, #49343b)"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 4px 12px"}}><strong>Atividades 💗</strong><button className="tiny-icon" aria-label="Fechar atividades" onClick={()=>setActivitiesOpen(false)}><X size={17}/></button></div>
+              {!activities.length?<p style={{padding:16,textAlign:"center",fontSize:14,opacity:.7}}>Ainda não há atividades por aqui. Quando alguém interagir com você, aparecerá aqui! 🐰</p>:activities.map(item=><button key={item.id} onClick={()=>{setActivitiesOpen(false);window.location.href="/perfil?id="+encodeURIComponent(item.actor_id);}} style={{display:"flex",width:"100%",gap:10,alignItems:"center",textAlign:"left",padding:"10px 6px",border:0,borderRadius:12,background:item.read_at?"transparent":"#ffeaf1",color:"inherit",cursor:"pointer",marginBottom:4}}>
+                <span style={{width:40,height:40,borderRadius:"50%",overflow:"hidden",background:"#ffe3ed",display:"grid",placeItems:"center",flexShrink:0}}>{item.actor_avatar?<img src={item.actor_avatar} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:item.actor_name.charAt(0)}</span>
+                <span style={{fontSize:13,lineHeight:1.4}}><strong>{item.actor_name}</strong> {activityText(item.action_type)}<small style={{display:"block",opacity:.6,marginTop:3}}>{new Date(item.created_at).toLocaleString("pt-BR")}</small></span>
+                {!item.read_at&&<span style={{width:7,height:7,borderRadius:"50%",background:"#e86694",marginLeft:"auto",flexShrink:0}}/>}
+              </button>)}
+            </div>}
+          </div>
           <button className="icon-button" aria-label="Alternar tema" onClick={() => setDark(!dark)}>{dark ? <Sun size={20} /> : <Moon size={20} />}</button>
           <button className="profile-mini" aria-label="Abrir perfil" onClick={() => { window.location.href = "/perfil"; }}>M</button>
         </div>
