@@ -75,22 +75,37 @@ export default function CreateProfilePage() {
       } else if (preview.startsWith("http")) {
         avatarUrl = preview;
       }
-      const { error } = await supabase.from("profiles").upsert({
-        auth_user_id: userId,
+      const profileChanges = {
         display_name: cleanName,
         username: cleanUsername,
         bio: bio.trim().slice(0, 160),
-        avatar_url: avatarUrl,
+        ...(avatarUrl ? { avatar_url: avatarUrl } : {}),
         updated_at: new Date().toISOString()
-      }, { onConflict: "auth_user_id" });
-      if (error) {
-        if (error.code === "23505") throw new Error("Esse @ já está sendo usado. Tente outro.");
-        throw error;
+      };
+      const { data: existingProfile, error: lookupError } = await supabase
+        .from("profiles").select("id").eq("auth_user_id", userId).maybeSingle();
+      if (lookupError) throw lookupError;
+      if (existingProfile) {
+        const { error } = await supabase.from("profiles").update(profileChanges).eq("auth_user_id", userId);
+        if (error) {
+          if (error.code === "23505") throw new Error("Esse @ já está sendo usado. Tente outro.");
+          if (error.message?.includes("USERNAME_CHANGE_COOLDOWN")) throw new Error("Você só pode alterar seu @ novamente depois de 2 meses.");
+          throw error;
+        }
+      } else {
+        const { error } = await supabase.from("profiles").insert({ auth_user_id: userId, ...profileChanges });
+        if (error) {
+          if (error.code === "23505") throw new Error("Esse @ já está sendo usado. Tente outro.");
+          throw error;
+        }
       }
       router.replace("/");
       router.refresh();
     } catch (error: any) {
-      setMessage(error?.message || "Não foi possível salvar seu perfil. Tente novamente.");
+      const rawMessage = String(error?.message || "");
+      setMessage(rawMessage === "Failed to fetch"
+        ? "Não foi possível conectar ao servidor do Mimimi. Confira sua internet e tente novamente. Se continuar, atualize a página."
+        : rawMessage || "Não foi possível salvar seu perfil. Tente novamente.");
       setBusy(false);
     }
   }
