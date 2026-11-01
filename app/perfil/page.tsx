@@ -72,8 +72,10 @@ export default function ProfilePage() {
       setCurrentUserId(user.id);
       const params = new URLSearchParams(window.location.search);
       const requestedUsername = params.get("u");
+      const requestedId = params.get("id");
       let query = supabase.from("profiles").select("id, auth_user_id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, created_at, hide_profile_visitors, mural_is_private");
       if (requestedUsername) query = query.eq("username", requestedUsername.replace(/^@/, "").toLowerCase());
+      else if (requestedId) query = query.eq("auth_user_id", requestedId);
       else query = query.eq("auth_user_id", user.id);
       const { data, error } = await query.maybeSingle();
       if (!active) return;
