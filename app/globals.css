@@ -428,3 +428,17 @@
 @media(max-width:600px){.publish-choice,.publish-editor,.publish-drafts{padding:19px;margin:18px auto}.publish-header{padding:0 13px}.publish-header strong{font-size:14px}.publish-tools{gap:7px}.publish-file{font-size:10px;padding:10px}.publish-draft-card{gap:6px}.publish-draft-card button{padding:8px}}
 
 .plus-menu{position:relative;margin:-4px 0 14px auto;width:min(290px,100%);padding:8px;background:var(--surface);border:1px solid var(--line);border-radius:15px;box-shadow:var(--shadow);z-index:4}.plus-menu button{width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:11px;border:0;border-radius:10px;background:transparent;color:var(--pink);font-size:20px}.plus-menu button:hover{background:var(--page)}.plus-menu span{display:grid;gap:3px}.plus-menu strong{font-size:12px;color:var(--ink)}.plus-menu small{font-size:10px;color:var(--muted)}.social-post-card{background-repeat:no-repeat}.social-post-cover,.social-post-media{display:block;width:100%;max-height:390px;object-fit:contain;border-radius:13px;margin:10px 0}.social-post-title{font:900 19px Nunito,sans-serif;margin:13px 0 5px}.social-post-audio{width:100%;margin:8px 0}.social-post-card .avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+
+
+/* Publicações no perfil */
+.profile-posts-section{display:flex;flex-direction:column;gap:16px}
+.profile-create-post,.profile-create-post-secondary{border:0;border-radius:16px;padding:13px 18px;background:linear-gradient(135deg,#E86694,#F47FA8);color:#fff;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 8px 22px rgba(232,102,148,.2)}
+.profile-create-post{align-self:flex-end}
+.profile-create-post-secondary{margin-top:8px}
+.profile-posts-list{display:grid;gap:16px}
+.profile-social-post{overflow:hidden;border:1px solid rgba(232,102,148,.18);border-radius:20px;padding:16px;color:#49343B;box-shadow:0 8px 26px rgba(73,52,59,.08);white-space:pre-wrap}
+.profile-social-post h2{font-size:19px;margin:4px 0 10px;font-weight:800}
+.profile-social-post p{font-size:15px;line-height:1.55;margin:8px 0 12px}
+.profile-social-post-cover,.profile-social-post>img,.profile-social-post video{display:block;width:100%;max-height:420px;object-fit:cover;border-radius:14px;margin:8px 0}
+.profile-social-post audio{width:100%;margin:8px 0}
+.profile-social-post small{display:block;margin-top:10px;opacity:.7;font-size:12px}
