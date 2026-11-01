@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
 import { ArrowLeft, Send, MessageCircle } from "lucide-react";
 
@@ -10,7 +10,6 @@ type Person = { display_name:string|null; username:string|null; avatar_url:strin
 
 export default function ChatPage() {
   const router = useRouter();
-  const params = useSearchParams();
   const [userId,setUserId] = useState("");
   const [otherId,setOtherId] = useState("");
   const [person,setPerson] = useState<Person|null>(null);
@@ -27,7 +26,7 @@ export default function ChatPage() {
       const supabase = getSupabase();
       const {data:{user}} = await supabase.auth.getUser();
       if (!user) { router.replace("/"); return; }
-      const target = params.get("u") || "";
+      const target = new URLSearchParams(window.location.search).get("u") || "";
       if (!target || target === user.id) { setNotice("Não foi possível iniciar esta conversa."); setLoading(false); return; }
       setUserId(user.id); setOtherId(target);
       const [{data:profile,error:profileError},{data:conversation,error:conversationError}] = await Promise.all([
@@ -45,7 +44,7 @@ export default function ChatPage() {
     }
     void start();
     return () => { active=false; };
-  },[params,router]);
+  },[router]);
 
   async function sendMessage() {
     if (!draft.trim() || !conversationId || sending) return;
