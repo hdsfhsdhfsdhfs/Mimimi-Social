@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
-import { ArrowLeft, Edit3, MessageCircle, MoreHorizontal, Save, Users, Eye, UserPlus, UserCheck, X, Lock } from "lucide-react";
+import { ArrowLeft, Edit3, MessageCircle, MoreHorizontal, Save, Users, Eye, UserPlus, UserCheck, X, Lock, Send, Trash2 } from "lucide-react";
 
 type Profile = {
   id: number; auth_user_id: string; username: string | null; display_name: string | null;
@@ -12,7 +12,8 @@ type Profile = {
   created_at: string; username_changed_at?: string | null; hide_profile_visitors?: boolean; mural_is_private?: boolean;
 };
 type PublishedPost = { id:string; post_type:"simple"|"advanced"; title:string|null; content:string; cover_url:string|null; media_url:string|null; media_type:string|null; audio_url:string|null; background_color:string|null; background_image_url:string|null; created_at:string };
-type MuralEntry = { id:string; profile_id:string; author_id:string; content:string; media_url:string|null; media_type:string|null; is_pinned:boolean; created_at:string; author?:Person };
+type MuralReply = {id:string; entry_id:string; author_id:string; content:string; created_at:string; author?:Person};
+type MuralEntry = { id:string; profile_id:string; author_id:string; content:string; media_url:string|null; media_type:string|null; is_pinned:boolean; created_at:string; author?:Person; replies?:MuralReply[] };
 type Person = { auth_user_id: string; display_name: string | null; username: string | null; avatar_url: string | null; viewed_at?: string };
 type SocialStats = { followers_count: number; following_count: number; views_count: number; is_following: boolean; viewers: Person[]; viewers_hidden: boolean };
 
@@ -45,6 +46,8 @@ export default function ProfilePage() {
   const [hideVisitors, setHideVisitors] = useState(false);
   const [privacyBusy, setPrivacyBusy] = useState(false);
   const [muralEntries, setMuralEntries] = useState<MuralEntry[]>([]);
+  const [muralReplyTexts,setMuralReplyTexts]=useState<Record<string,string>>({});
+  const [muralReplyOpen,setMuralReplyOpen]=useState("");
   const [muralPrivate, setMuralPrivate] = useState(false);
   const [muralText, setMuralText] = useState("");
   const [muralFile, setMuralFile] = useState<File | null>(null);
@@ -108,10 +111,11 @@ export default function ProfilePage() {
     const supabase = getSupabase();
     const {data} = await supabase.from("profile_mural_entries").select("id,profile_id,author_id,content,media_url,media_type,is_pinned,created_at").eq("profile_id",profileId).order("is_pinned",{ascending:false}).order("created_at",{ascending:false});
     if (!data?.length) { setMuralEntries([]); return; }
-    const authorIds = [...new Set(data.map((entry:any)=>entry.author_id))];
+    const {data:replyRows} = await supabase.from("profile_mural_replies").select("id,entry_id,author_id,content,created_at").in("entry_id",data.map((entry:any)=>entry.id)).order("created_at",{ascending:true});
+    const authorIds = [...new Set([...data.map((entry:any)=>entry.author_id),...(replyRows||[]).map((reply:any)=>reply.author_id)])];
     const {data:authors} = await supabase.from("profiles").select("auth_user_id,display_name,username,avatar_url").in("auth_user_id",authorIds);
     const byId = new Map((authors||[]).map((person:any)=>[person.auth_user_id,person]));
-    setMuralEntries(data.map((entry:any)=>({...entry,author:byId.get(entry.author_id)})) as MuralEntry[]);
+    setMuralEntries(data.map((entry:any)=>({...entry,author:byId.get(entry.author_id),replies:(replyRows||[]).filter((reply:any)=>reply.entry_id===entry.id).map((reply:any)=>({...reply,author:byId.get(reply.author_id)}))})) as MuralEntry[]);
   }
 
   async function loadPublishedPosts(authorId: string) {
@@ -146,6 +150,22 @@ export default function ProfilePage() {
       setMessage("Recadinho publicado no mural! 💗");
     } catch (error:any) { setMessage(error?.message||"Não foi possível publicar. Tente novamente."); }
     setMuralBusy(false);
+  }
+
+  async function sendMuralReply(entry:MuralEntry) {
+    const content=(muralReplyTexts[entry.id]||"").trim();
+    if(!content||muralBusy||!profile||(muralPrivate&&!isOwner)) return;
+    setMuralBusy(true); setMessage("");
+    const {error}=await getSupabase().from("profile_mural_replies").insert({entry_id:entry.id,author_id:currentUserId,content});
+    if(error) setMessage("Não foi possível enviar sua resposta: "+error.message);
+    else {setMuralReplyTexts(old=>({...old,[entry.id]:""}));setMuralReplyOpen("");await loadMural(profile.auth_user_id);}
+    setMuralBusy(false);
+  }
+
+  async function deleteMuralReply(reply:MuralReply) {
+    const {error}=await getSupabase().from("profile_mural_replies").delete().eq("id",reply.id);
+    if(error) setMessage("Não foi possível apagar esta resposta.");
+    else if(profile) await loadMural(profile.auth_user_id);
   }
 
   async function toggleMuralPrivacy(next:boolean) {
@@ -334,7 +354,10 @@ export default function ProfilePage() {
         
         {(!muralPrivate||isOwner)&&<div className="profile-mural-compose"><div className="profile-mural-compose-title"><MessageCircle size={18}/><strong>Deixe um recadinho</strong></div><textarea value={muralText} maxLength={500} onChange={e=>setMuralText(e.target.value)} placeholder="Escreva algo carinhoso..."/>{muralPreview&&<div className="profile-mural-preview">{muralFile?.type==="image/gif"?<img src={muralPreview} alt="Prévia do GIF"/>:<img src={muralPreview} alt="Prévia da imagem"/>}<button onClick={()=>{setMuralFile(null);setMuralPreview("");}}>Remover</button></div>}<div className="profile-mural-compose-footer"><label className="profile-mural-attach">＋ Foto ou GIF<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e=>chooseMuralFile(e.target.files?.[0])}/></label><button onClick={publishMuralEntry} disabled={muralBusy||(!muralText.trim()&&!muralFile)}>{muralBusy?"Publicando...":"Publicar recado"}</button></div></div>}
         {muralPrivate&&!isOwner&&<p className="profile-mural-private-note"><Lock size={15}/> Este mural está privado para comentários. Você ainda pode ver todos os recados. ♡</p>}
-        {muralEntries.length===0?<div className="profile-empty"><MessageCircle size={27}/><strong>Seu mural está esperando carinho!</strong><p>Quando alguém deixar um recadinho, ele aparecerá aqui. ♡</p></div>:<div className="profile-mural-list">{muralEntries.map(entry=><article className="profile-mural-entry" key={entry.id}>{entry.is_pinned&&<span className="profile-mural-pinned">📌 Fixado no mural</span>}<div className="profile-mural-author">{entry.author?.avatar_url?<img src={entry.author.avatar_url} alt=""/>:<i>{(entry.author?.display_name||entry.author?.username||"?").charAt(0).toUpperCase()}</i>}<span><strong>{entry.author?.display_name||"Pessoa Mimimi"}</strong><small>@{entry.author?.username||"usuario"} · {new Date(entry.created_at).toLocaleDateString("pt-BR")}</small></span></div>{entry.content&&<p>{entry.content}</p>}{entry.media_url&&<img className="profile-mural-media" src={entry.media_url} alt="Imagem ou GIF do mural"/>}{isOwner&&<div className="profile-mural-actions"><button onClick={()=>manageMuralEntry(entry,"pin")}>{entry.is_pinned?"Desafixar":"Fixar"}</button><button onClick={()=>manageMuralEntry(entry,"delete")}>Apagar</button></div>}</article>)}</div>}
+        {muralEntries.length===0?<div className="profile-empty"><MessageCircle size={27}/><strong>Seu mural está esperando carinho!</strong><p>Quando alguém deixar um recadinho, ele aparecerá aqui. ♡</p></div>:<div className="profile-mural-list">{muralEntries.map(entry=><article className="profile-mural-entry" key={entry.id}>{entry.is_pinned&&<span className="profile-mural-pinned">📌 Fixado no mural</span>}<div className="profile-mural-author">{entry.author?.avatar_url?<img src={entry.author.avatar_url} alt=""/>:<i>{(entry.author?.display_name||entry.author?.username||"?").charAt(0).toUpperCase()}</i>}<span><strong>{entry.author?.display_name||"Pessoa Mimimi"}</strong><small>@{entry.author?.username||"usuario"} · {new Date(entry.created_at).toLocaleDateString("pt-BR")}</small></span></div>{entry.content&&<p>{entry.content}</p>}{entry.media_url&&<img className="profile-mural-media" src={entry.media_url} alt="Imagem ou GIF do mural"/>}
+        <div className="mural-replies">{(entry.replies||[]).map(reply=><div className="mural-reply" key={reply.id}><div className="profile-mural-author">{reply.author?.avatar_url?<img src={reply.author.avatar_url} alt=""/>:<i>{(reply.author?.display_name||reply.author?.username||"?").charAt(0).toUpperCase()}</i>}<span><strong>{reply.author?.display_name||"Pessoa Mimimi"}</strong><small>@{reply.author?.username||"usuario"} · {new Date(reply.created_at).toLocaleDateString("pt-BR")}</small></span></div><p>{reply.content}</p>{(isOwner||reply.author_id===currentUserId)&&<button className="mural-reply-delete" onClick={()=>void deleteMuralReply(reply)}><Trash2 size={12}/> Apagar resposta</button>}</div>)}</div>
+        {(!muralPrivate||isOwner)&&<><button className="mural-reply-trigger" onClick={()=>setMuralReplyOpen(muralReplyOpen===entry.id?"":entry.id)}><MessageCircle size={14}/> Responder ({(entry.replies||[]).length})</button>{muralReplyOpen===entry.id&&<div className="mural-reply-compose"><textarea value={muralReplyTexts[entry.id]||""} maxLength={1000} onChange={e=>setMuralReplyTexts(old=>({...old,[entry.id]:e.target.value}))} placeholder="Escreva sua resposta... 💗"/><button disabled={muralBusy||!(muralReplyTexts[entry.id]||"").trim()} onClick={()=>void sendMuralReply(entry)}><Send size={14}/> Enviar</button></div>}</>}
+        {isOwner&&<div className="profile-mural-actions"><button onClick={()=>manageMuralEntry(entry,"pin")}>{entry.is_pinned?"Desafixar":"Fixar"}</button><button onClick={()=>manageMuralEntry(entry,"delete")}>Apagar</button></div>}</article>)}</div>}
       </div>}
         {tab==="Sobre mim"&&<div className="profile-about"><h2>Sobre mim</h2><p>{profile.bio||"Ainda não adicionou uma biografia."}</p><span>Membro do Mimimi desde {joined}</span></div>}
       </section>
