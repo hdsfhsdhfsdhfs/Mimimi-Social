@@ -148,7 +148,7 @@ export default function ProfilePage() {
         .select("id, auth_user_id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, created_at")
         .single();
       if (error) {
-        setMessage(error.code === "23505" ? "Esse @usuário já está sendo usado. Escolha outro." : "Não foi possível salvar agora. Confira sua conexão e tente novamente.");
+        setMessage(error.code === "23505" ? "Esse @usuário já está sendo usado. Escolha outro." : `Erro ao salvar: ${error.message}`);
       } else {
         setProfile(data as Profile);
         setAvatarFile(null);
