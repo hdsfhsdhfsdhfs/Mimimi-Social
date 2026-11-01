@@ -541,3 +541,35 @@
 .profile-account-panel{width:100%}
 .profile-signout-button{width:100%;margin-top:22px;padding:15px 18px;border:0;border-radius:16px;background:#e86694;color:#fff;font-size:15px;font-weight:700;cursor:pointer}
 .profile-signout-button:disabled{opacity:.65;cursor:wait}
+
+
+/* Primeira configuração do perfil */
+.mimimi-onboarding{min-height:100dvh;display:grid;place-items:center;padding:28px 15px;background:radial-gradient(ellipse at 50% -10%,#FFE3ED 0%,#FFF7F2 55%,#fff 100%);color:#49343B}
+.mimimi-onboarding-card{position:relative;width:min(100%,490px);padding:30px 34px 24px;border:1px solid #F2DCE5;border-radius:28px;background:rgba(255,255,255,.94);box-shadow:0 18px 55px #9f59731a;display:flex;flex-direction:column;align-items:stretch}
+.mimimi-onboarding-brand{display:flex;align-items:center;justify-content:center;gap:8px;color:#E86694;font:900 19px Nunito,sans-serif}
+.mimimi-onboarding-brand img{width:30px;height:30px;object-fit:contain}
+.mimimi-onboarding-heart{display:grid;place-items:center;width:36px;height:36px;margin:20px auto 8px;border-radius:50%;background:#FFF0F5;color:#E86694}
+.mimimi-onboarding-kicker{text-align:center;margin:0;color:#C56A8B;font-size:9px;font-weight:900;letter-spacing:.15em}
+.mimimi-onboarding-card h1{margin:7px 0 6px;text-align:center;color:#49343B;font:900 29px Nunito,sans-serif}
+.mimimi-onboarding-subtitle{max-width:350px;margin:0 auto 18px;text-align:center;color:#987F88;font-size:12px;line-height:1.65}
+.mimimi-onboarding-avatar{position:relative;display:grid;place-items:center;align-self:center;width:94px;height:94px;margin:3px auto 7px;border:3px solid #FFE3ED;border-radius:50%;background:#FFF2F6;color:#D87599;cursor:pointer;overflow:visible}
+.mimimi-onboarding-avatar>img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.mimimi-onboarding-avatar>span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%}
+.mimimi-onboarding-avatar>i{position:absolute;right:-2px;bottom:0;display:grid;place-items:center;width:30px;height:30px;border:3px solid #fff;border-radius:50%;background:#E86694;color:#fff;font-style:normal}
+.mimimi-onboarding-file{display:none}
+.mimimi-onboarding-photo-hint{margin-bottom:17px;text-align:center;color:#B58D9D;font-size:10px}
+.mimimi-onboarding-field{display:flex;flex-direction:column;gap:7px;margin:0 0 14px;color:#604653;font-size:11px;font-weight:900}
+.mimimi-onboarding-field input,.mimimi-onboarding-field textarea{width:100%;box-sizing:border-box;border:1px solid #F0DDE5;border-radius:13px;padding:13px 14px;background:#FFFAFC;color:#49343B;font:500 13px inherit;outline:none}
+.mimimi-onboarding-field input:focus,.mimimi-onboarding-field textarea:focus{border-color:#E99AB7;box-shadow:0 0 0 3px #FFE3ED}
+.mimimi-onboarding-field textarea{resize:vertical;min-height:72px}
+.mimimi-onboarding-field>span small{color:#B58D9D;font-weight:600}
+.mimimi-onboarding-username{display:flex;align-items:center;gap:7px;padding-left:13px;border:1px solid #F0DDE5;border-radius:13px;background:#FFFAFC;color:#D36C91}
+.mimimi-onboarding-username:focus-within{border-color:#E99AB7;box-shadow:0 0 0 3px #FFE3ED}
+.mimimi-onboarding-username b{font-size:14px}
+.mimimi-onboarding-username input{border:0;background:transparent;box-shadow:none!important}
+.mimimi-onboarding-field>small{color:#A88D97;font-size:9px;font-weight:500}
+.mimimi-onboarding-message{margin:0 0 12px;padding:10px 12px;border-radius:10px;background:#FFF0F3;color:#B94473;font-size:11px;line-height:1.5}
+.mimimi-onboarding-submit{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:3px;padding:14px 18px;border:0;border-radius:14px;background:linear-gradient(135deg,#E86694,#F47FA8);color:#fff;font-size:13px;font-weight:900;box-shadow:0 8px 18px #E8669430;cursor:pointer}
+.mimimi-onboarding-submit:disabled{opacity:.6;cursor:wait}
+.mimimi-onboarding-foot{display:flex;align-items:center;justify-content:center;gap:5px;margin:16px 0 0;color:#C18DA2;font-size:10px}
+@media(max-width:480px){.mimimi-onboarding{padding:15px 12px}.mimimi-onboarding-card{padding:24px 20px 20px;border-radius:23px}.mimimi-onboarding-card h1{font-size:26px}}
