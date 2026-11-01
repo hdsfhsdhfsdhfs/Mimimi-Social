@@ -12,6 +12,9 @@ type Profile = {
   bio: string;
   avatar_url: string | null;
   background_url: string | null;
+  is_official: boolean;
+  role_label: string | null;
+  role_description: string | null;
   created_at: string;
 };
 
@@ -27,6 +30,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [tab, setTab] = useState("Publicações");
+  const [showRoleInfo, setShowRoleInfo] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -37,7 +41,7 @@ export default function ProfilePage() {
         router.replace("/");
         return;
       }
-      const { data, error } = await supabase.from("profiles").select("id, username, display_name, bio, avatar_url, background_url, created_at").eq("id", user.id).maybeSingle();
+      const { data, error } = await supabase.from("profiles").select("id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, created_at").eq("id", user.id).maybeSingle();
       if (!active) return;
       if (error) {
         setMessage("Não foi possível carregar seu perfil. Tente novamente.");
@@ -49,6 +53,9 @@ export default function ProfilePage() {
           bio: "",
           avatar_url: null,
           background_url: null,
+          is_official: false,
+          role_label: null,
+          role_description: null,
           created_at: user.created_at
         };
         setProfile(current as Profile);
@@ -161,6 +168,11 @@ export default function ProfilePage() {
           <div className="profile-identity">
             <h1>{name}</h1>
             <p>{handle}</p>
+            {(profile?.is_official || profile?.role_label) && <div className="profile-role-row">
+              {profile?.is_official && <span className="profile-verified" title="Conta oficial do Mimimi">✓</span>}
+              {profile?.role_label && <button className="profile-role-pill" onClick={() => setShowRoleInfo(!showRoleInfo)}>{profile.role_label}</button>}
+            </div>}
+            {showRoleInfo && <div className="profile-role-popover">{profile?.role_description || "Membro oficial da equipe Mimimi."}</div>}
             <span className="profile-joined">Membro desde {joined}</span>
           </div>
           <p className="profile-bio">{profile?.bio || "Este cantinho está esperando por uma descrição especial. ♡"}</p>
