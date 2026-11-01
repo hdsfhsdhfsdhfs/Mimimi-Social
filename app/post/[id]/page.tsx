@@ -60,11 +60,11 @@ export default function PostDetailPage() {
     const supabase=getSupabase();
     if(liked){
       const {error}=await supabase.from("social_post_likes").delete().eq("post_id",post.id).eq("user_id",userId);
-      if(error)setNotice("Não foi possível remover a curtida.");
+      if(error)setNotice("Erro ao remover curtida: "+error.message);
       else {setLiked(false);setLikes(n=>Math.max(0,n-1));}
     }else{
       const {error}=await supabase.from("social_post_likes").insert({post_id:post.id,user_id:userId});
-      if(error)setNotice("Não foi possível curtir esta publicação.");
+      if(error)setNotice("Erro ao curtir: "+error.message);
       else {setLiked(true);setLikes(n=>n+1);}
     }
     setBusy(false);
@@ -74,7 +74,7 @@ export default function PostDetailPage() {
     if(!post||!commentText.trim()||busy||!post.comments_enabled)return;
     setBusy(true);
     const {data,error}=await getSupabase().from("social_post_comments").insert({post_id:post.id,author_id:userId,content:commentText.trim()}).select("id,post_id,author_id,content,is_pinned,created_at").single();
-    if(error)setNotice("Não foi possível enviar seu comentário.");
+    if(error)setNotice("Erro ao comentar: "+error.message);
     else{
       const {data:profile}=await getSupabase().from("profiles").select("display_name,username,avatar_url").eq("auth_user_id",userId).maybeSingle();
       setComments(old=>[...old,{...data,author_name:profile?.display_name||"Você",author_username:profile?.username||"membro",author_avatar:profile?.avatar_url||null}]);
