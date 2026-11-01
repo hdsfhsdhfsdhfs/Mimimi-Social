@@ -9,7 +9,7 @@ type Profile = {
   id: number; auth_user_id: string; username: string | null; display_name: string | null;
   bio: string; avatar_url: string | null; background_url: string | null;
   is_official: boolean; role_label: string | null; role_description: string | null;
-  created_at: string; hide_profile_visitors?: boolean;
+  created_at: string; hide_profile_visitors?: boolean; mural_is_private?: boolean;
 };
 type MuralEntry = { id:string; profile_id:string; author_id:string; content:string; media_url:string|null; media_type:string|null; is_pinned:boolean; created_at:string; author?:Person };
 type Person = { auth_user_id: string; display_name: string | null; username: string | null; avatar_url: string | null; viewed_at?: string };
@@ -40,7 +40,13 @@ export default function ProfilePage() {
   const [listLoading, setListLoading] = useState(false);
   const [followingBusy, setFollowingBusy] = useState(false);
   const [hideVisitors, setHideVisitors] = useState(false);
-  const [privacyBusy, setPrivacyBusy] = useState(false);\n  const [muralEntries, setMuralEntries] = useState<MuralEntry[]>([]);\n  const [muralPrivate, setMuralPrivate] = useState(false);\n  const [muralText, setMuralText] = useState("");\n  const [muralFile, setMuralFile] = useState<File | null>(null);\n  const [muralPreview, setMuralPreview] = useState("");\n  const [muralBusy, setMuralBusy] = useState(false);
+  const [privacyBusy, setPrivacyBusy] = useState(false);
+  const [muralEntries, setMuralEntries] = useState<MuralEntry[]>([]);
+  const [muralPrivate, setMuralPrivate] = useState(false);
+  const [muralText, setMuralText] = useState("");
+  const [muralFile, setMuralFile] = useState<File | null>(null);
+  const [muralPreview, setMuralPreview] = useState("");
+  const [muralBusy, setMuralBusy] = useState(false);
   const isOwner = !!profile && profile.auth_user_id === currentUserId;
 
   async function loadSocial(targetId: string) {
@@ -64,7 +70,7 @@ export default function ProfilePage() {
       setCurrentUserId(user.id);
       const params = new URLSearchParams(window.location.search);
       const requestedUsername = params.get("u");
-      let query = supabase.from("profiles").select("id, auth_user_id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, created_at, hide_profile_visitors");
+      let query = supabase.from("profiles").select("id, auth_user_id, username, display_name, bio, avatar_url, background_url, is_official, role_label, role_description, created_at, hide_profile_visitors, mural_is_private");
       if (requestedUsername) query = query.eq("username", requestedUsername.replace(/^@/, "").toLowerCase());
       else query = query.eq("auth_user_id", user.id);
       const { data, error } = await query.maybeSingle();
@@ -79,7 +85,9 @@ export default function ProfilePage() {
       setDisplayName(current.display_name || "");
       setUsername(current.username || "");
       setBio(current.bio || "");
-      setHideVisitors(!!current.hide_profile_visitors);\n      setMuralPrivate(!!(current as any).mural_is_private);\n      await loadMural(current.auth_user_id);
+      setHideVisitors(!!current.hide_profile_visitors);
+      setMuralPrivate(!!(current as any).mural_is_private);
+      await loadMural(current.auth_user_id);
       await supabase.rpc("record_profile_view", { target_profile_id: current.auth_user_id });
       const { data: social } = await supabase.rpc("get_profile_social_stats", { target_profile_id: current.auth_user_id });
       if (active && social) setStats({...social as SocialStats, viewers: (social as SocialStats).viewers || []});
