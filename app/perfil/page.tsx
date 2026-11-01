@@ -180,7 +180,7 @@ export default function ProfilePage() {
   if (settingsOpen) return (
     <main className="profile-page profile-settings-page">
       <header className="profile-topbar profile-settings-topbar">
-        <button className="profile-settings-back" onClick={()=>setSettingsOpen(false)}><ArrowLeft size={19}/> Voltar ao perfil</button>
+        <button className="profile-settings-back" aria-label="Voltar ao perfil" onClick={()=>setSettingsOpen(false)}><ArrowLeft size={21}/></button>
         <strong>Opções do perfil</strong>
         <span/>
       </header>
