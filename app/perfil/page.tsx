@@ -31,7 +31,7 @@ export default function ProfilePage() {
   const [message, setMessage] = useState("");
   const [tab, setTab] = useState("Publicações");
   const [showRoleInfo, setShowRoleInfo] = useState(false);
-  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [stats, setStats] = useState<SocialStats>({followers_count:0,following_count:0,views_count:0,is_following:false,viewers:[],viewers_hidden:false});
   const [socialList, setSocialList] = useState<Person[]>([]);
   const [listTitle, setListTitle] = useState("");
@@ -177,12 +177,27 @@ export default function ProfilePage() {
   const joined = profile.created_at ? new Date(profile.created_at).toLocaleDateString("pt-BR",{day:"numeric",month:"short",year:"numeric"}) : "recentemente";
   const initial = name.trim().charAt(0).toUpperCase() || "M";
 
+  if (settingsOpen) return (
+    <main className="profile-page profile-settings-page">
+      <header className="profile-topbar profile-settings-topbar">
+        <button className="profile-settings-back" onClick={()=>setSettingsOpen(false)}><ArrowLeft size={19}/> Voltar ao perfil</button>
+        <strong>Opções do perfil</strong>
+        <span/>
+      </header>
+      <section className="profile-settings-content">
+        <div className="profile-settings-intro"><span><Lock size={22}/></span><h1>Privacidade</h1><p>Escolha como outras pessoas podem ver as visitas ao seu perfil.</p></div>
+        {isOwner ? <div className="profile-settings-option"><div><strong>Quem visitou meu perfil</strong><p>{hideVisitors?"Somente você pode ver os nomes e fotos de quem visitou.":"As pessoas podem ver os nomes e fotos de quem visitou."}</p></div><label className="profile-switch"><input type="checkbox" checked={hideVisitors} disabled={privacyBusy} onChange={e=>updateVisitorPrivacy(e.target.checked)}/><span/></label></div> : <p className="profile-settings-note">As opções de privacidade só podem ser alteradas pelo dono do perfil.</p>}
+        {message&&<p className="profile-feedback" role="status">{message}</p>}
+      </section>
+    </main>
+  );
+
   return (
     <main className="profile-page" style={profile.background_url?{backgroundImage:`linear-gradient(180deg,rgba(33,25,35,.35),rgba(33,25,35,.82)),url("${profile.background_url}")`,backgroundSize:"cover",backgroundPosition:"center top",backgroundAttachment:"fixed"}:undefined}>
       <header className="profile-topbar">
         <button className="profile-back" onClick={()=>router.push("/")} aria-label="Voltar ao início"><ArrowLeft size={20}/></button>
         <strong>Mimimi</strong>
-        <div className="profile-more-wrap"><button className="profile-back" aria-label="Mais opções" aria-expanded={moreMenuOpen} onClick={()=>setMoreMenuOpen(v=>!v)}><MoreHorizontal size={21}/></button>{moreMenuOpen&&<div className="profile-more-menu">{isOwner?<><strong>Privacidade</strong><div className="profile-more-privacy"><span><b>Quem visitou meu perfil</b><small>{hideVisitors?"Somente você pode ver os visitantes.":"Todos podem ver os visitantes."}</small></span><label className="profile-switch"><input type="checkbox" checked={hideVisitors} disabled={privacyBusy} onChange={e=>updateVisitorPrivacy(e.target.checked)}/><span/></label></div></>:<p>Opções do perfil</p>}</div>}</div>
+        <button className="profile-back" aria-label="Mais opções" onClick={()=>{setSettingsOpen(true);setMessage("");}}><MoreHorizontal size={21}/></button>
       </header>
       <section className="profile-cover" style={(backgroundPreview||profile.background_url)?{backgroundImage:`linear-gradient(145deg,rgba(48,28,55,.55),rgba(33,25,35,.72)),url("${backgroundPreview||profile.background_url}")`,backgroundSize:"cover",backgroundPosition:"center"}:undefined}>
         <div className="profile-cover-glow"/>
