@@ -312,7 +312,6 @@ export default function ProfilePage() {
     <main className="profile-page" style={profile.background_url?{backgroundImage:`linear-gradient(180deg,rgba(33,25,35,.35),rgba(33,25,35,.82)),url("${profile.background_url}")`,backgroundSize:"cover",backgroundPosition:"center top",backgroundAttachment:"fixed"}:undefined}>
       <header className="profile-topbar">
         <button className="profile-back" onClick={()=>router.push("/")} aria-label="Voltar ao início"><ArrowLeft size={20}/></button>
-        <strong>Mimimi</strong>
         <button className="profile-back" aria-label="Mais opções" onClick={()=>{setSettingsOpen(true);setMessage("");}}><MoreHorizontal size={21}/></button>
       </header>
       <section className="profile-cover" style={(backgroundPreview||profile.background_url)?{backgroundImage:`linear-gradient(145deg,rgba(48,28,55,.55),rgba(33,25,35,.72)),url("${backgroundPreview||profile.background_url}")`,backgroundSize:"cover",backgroundPosition:"center"}:undefined}>
