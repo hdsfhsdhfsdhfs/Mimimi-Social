@@ -15,6 +15,10 @@ create unique index if not exists profiles_auth_user_id_unique
   on public.profiles(auth_user_id)
   where auth_user_id is not null;
 
+-- A full unique index is required for PostgREST upsert(onConflict: auth_user_id).
+create unique index if not exists profiles_auth_user_id_unique_full
+  on public.profiles(auth_user_id);
+
 alter table public.profiles enable row level security;
 
 drop policy if exists "Profiles are viewable by everyone" on public.profiles;
