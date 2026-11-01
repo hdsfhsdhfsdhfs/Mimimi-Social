@@ -256,3 +256,8 @@
   .mimi-auth-entry .mimi-love{margin-top:15px}
   .mimi-auth-entry .mimi-support{margin-top:9px}
 }
+
+
+/* Google abaixo de Criar nova conta, com destaque discreto */
+.mimi-auth-entry .mimi-social-row{grid-template-columns:1fr;width:100%;max-width:100%;margin:10px auto 0}
+.mimi-auth-entry .mimi-social{height:40px;background:rgba(255,255,255,.58);border-color:#F6DCE3;color:#A9788A;font-size:11px;box-shadow:none}
