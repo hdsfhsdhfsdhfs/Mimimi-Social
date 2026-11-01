@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
-import { ArrowLeft, Bell, Camera, Check, Edit3, MessageCircle, MoreHorizontal, Save, Users, Eye } from "lucide-react";
+import { ArrowLeft, Edit3, MessageCircle, MoreHorizontal, Save, Users, Eye } from "lucide-react";
 
 type Profile = {
   id: string;
