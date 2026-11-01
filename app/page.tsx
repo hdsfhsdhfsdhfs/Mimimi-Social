@@ -113,7 +113,7 @@ export default function HomePage() {
       <div className="layout">
         <aside className={mobileMenu ? "sidebar show" : "sidebar"}>
           <div className="side-profile">
-            <div className="avatar avatar-large">M</div>
+            <button className="avatar avatar-large" aria-label="Abrir meu perfil" onClick={() => { window.location.href = "/perfil"; }}>M</button>
             <div><strong>Meu cantinho</strong><span>@seuperfil</span></div>
             <button className="tiny-icon" aria-label="Configurações" onClick={() => setNotice("Configurações em desenvolvimento.")}><Settings size={17} /></button>
           </div>
