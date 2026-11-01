@@ -40,6 +40,7 @@ const navItems = [
 export default function HomePage() {
   const [sessionReady, setSessionReady] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
+  const [profileCheckReady, setProfileCheckReady] = useState(false);
   const [dark, setDark] = useState(false);
   const [active, setActive] = useState("Início");
   const [liked, setLiked] = useState<number[]>([]);
@@ -71,6 +72,25 @@ export default function HomePage() {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!sessionReady || !authenticated) return;
+    let active = true;
+    async function checkFirstProfile() {
+      const supabase = getSupabase();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from("profiles").select("username").eq("auth_user_id", user.id).maybeSingle();
+      if (!active) return;
+      if (!data?.username) {
+        window.location.replace("/criar-perfil");
+        return;
+      }
+      setProfileCheckReady(true);
+    }
+    void checkFirstProfile();
+    return () => { active = false; };
+  }, [sessionReady, authenticated]);
 
   useEffect(() => {
     if (!authenticated) return;
@@ -128,6 +148,7 @@ export default function HomePage() {
 
   if (!sessionReady) return <main className="auth-page"><div className="auth-loading">Preparando seu cantinho... 💗</div></main>;
   if (!authenticated) return <AuthPanel />;
+  if (authenticated && !profileCheckReady) return <main className="auth-page"><div className="auth-loading">Preparando seu cantinho... 💗</div></main>;
 
   return (
     <main className={dark ? "app dark" : "app"}>
