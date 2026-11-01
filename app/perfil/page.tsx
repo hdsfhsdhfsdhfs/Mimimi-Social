@@ -31,6 +31,7 @@ export default function ProfilePage() {
   const [message, setMessage] = useState("");
   const [tab, setTab] = useState("Publicações");
   const [showRoleInfo, setShowRoleInfo] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [stats, setStats] = useState<SocialStats>({followers_count:0,following_count:0,views_count:0,is_following:false,viewers:[],viewers_hidden:false});
   const [socialList, setSocialList] = useState<Person[]>([]);
   const [listTitle, setListTitle] = useState("");
@@ -181,7 +182,7 @@ export default function ProfilePage() {
       <header className="profile-topbar">
         <button className="profile-back" onClick={()=>router.push("/")} aria-label="Voltar ao início"><ArrowLeft size={20}/></button>
         <strong>Mimimi</strong>
-        <button className="profile-back" aria-label="Mais opções" onClick={()=>setMessage("Mais opções estarão disponíveis em breve.")}><MoreHorizontal size={21}/></button>
+        <div className="profile-more-wrap"><button className="profile-back" aria-label="Mais opções" aria-expanded={moreMenuOpen} onClick={()=>setMoreMenuOpen(v=>!v)}><MoreHorizontal size={21}/></button>{moreMenuOpen&&<div className="profile-more-menu">{isOwner?<><strong>Privacidade</strong><div className="profile-more-privacy"><span><b>Quem visitou meu perfil</b><small>{hideVisitors?"Somente você pode ver os visitantes.":"Todos podem ver os visitantes."}</small></span><label className="profile-switch"><input type="checkbox" checked={hideVisitors} disabled={privacyBusy} onChange={e=>updateVisitorPrivacy(e.target.checked)}/><span/></label></div></>:<p>Opções do perfil</p>}</div>}</div>
       </header>
       <section className="profile-cover" style={(backgroundPreview||profile.background_url)?{backgroundImage:`linear-gradient(145deg,rgba(48,28,55,.55),rgba(33,25,35,.72)),url("${backgroundPreview||profile.background_url}")`,backgroundSize:"cover",backgroundPosition:"center"}:undefined}>
         <div className="profile-cover-glow"/>
@@ -213,7 +214,6 @@ export default function ProfilePage() {
         </div>
         <div className="profile-edit-footer"><small>{bio.length}/160</small><button onClick={saveProfile} disabled={saving}><Save size={16}/>{saving?"Salvando...":"Salvar alterações"}</button></div>
       </section>}
-      {isOwner&&<section className="profile-privacy-card"><div><strong><Lock size={16}/> Privacidade das visitas</strong><p>{hideVisitors?"Outras pessoas veem apenas o número de visitas.":"Todos podem ver quem visitou este perfil."}</p></div><label className="profile-switch"><input type="checkbox" checked={hideVisitors} disabled={privacyBusy} onChange={e=>updateVisitorPrivacy(e.target.checked)}/><span/></label></section>}
       {message&&<p className="profile-feedback" role="status">{message}</p>}
       <div className="profile-tabs">{["Publicações","Mural","Sobre mim"].map(item=><button key={item} className={tab===item?"active":""} onClick={()=>setTab(item)}>{item}</button>)}</div>
       <section className="profile-tab-content">
